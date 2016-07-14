@@ -13,6 +13,7 @@ bool MomanaNode::start_stop_service_callback(tud_momana::StartStopMomana::Reques
         ROS_INFO("Mobile marker Navigation Started");
         state_ = Running;
         //START()
+        run();
         // return state to the service call
         response.state = true;
       } else if (state_ == Running){
@@ -45,12 +46,16 @@ void MomanaNode::run(void){
   // Start Odom messages publishing
 
   // check for c3po service
+  ROS_INFO("Waiting for c3po local move server");
   ac_c3po_.waitForServer();
   ROS_INFO("c3po Local move server found");
 
   // check for r2d2 service
+  ROS_INFO("Waiting for r2d2 local move server");
   ac_r2d2_.waitForServer();
   ROS_INFO("r2d2 Local move server found");
+
+  state_ = Idle;
 
   // main loop
 
