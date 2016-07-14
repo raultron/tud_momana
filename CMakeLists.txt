@@ -105,7 +105,7 @@ generate_messages(DEPENDENCIES  std_msgs)
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES coop_uv
-  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs nav_msgs message_runtime robotino_local_move
+  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs nav_msgs message_runtime
 #  DEPENDS system_lib
 )
 

@@ -52,6 +52,8 @@
   <build_depend>nav_msgs</build_depend>
   <build_depend>actionlib</build_depend>
   <build_depend>actionlib_msgs</build_depend>
+  <build_depend>robotino_local_move</build_depend>
+  <build_depend>tud_coop_uv</build_depend>
 
 
 
