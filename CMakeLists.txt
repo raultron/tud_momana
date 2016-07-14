@@ -163,6 +163,7 @@ add_dependencies(momana
 
 add_dependencies(
   joy_control_momana
+  tud_coop_uv
   tud_coop_uv_generate_messages_cpp
   tud_momana_generate_messages_cpp
   ardrone_autonomy_generate_messages_cpp)

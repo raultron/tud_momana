@@ -67,7 +67,6 @@
   <run_depend>tud_img_prep</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>actionlib_msgs</run_depend>
-  <run_depend>robotino_local_move</run_depend>
 
 
 
