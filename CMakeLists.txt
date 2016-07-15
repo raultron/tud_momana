@@ -17,6 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
     actionlib
 )
 
+find_package(Boost REQUIRED COMPONENTS thread)
+
 #For Qt
 #find_package(Qt4 COMPONENTS QtCore QtGui)
 #INCLUDE(${QT_USE_FILE})

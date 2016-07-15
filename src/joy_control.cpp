@@ -37,6 +37,7 @@ tud_coop_uv::SetController srv_SetController;
 tud_momana::StartStopMomana srv_StartStopMomana;
 
 ros::Time buttonTakeoff_pressed_instant;
+ros::Time buttonStart_pressed_instant;
 ros::Duration delay_button(1.0);
 
 void set_hover(void) {
@@ -117,30 +118,37 @@ void joyCallback(const sensor_msgs::Joy& in) {
   }
 
   if (buttonStartStopMomana) {
-    if(momana_started){
-      //We want to stop
-      srv_StartStopMomana.request.start = false;
-      srv_StartStopMomana.request.stop = true;
-    } else {
-      //We want to start
-      srv_StartStopMomana.request.start = true;
-      srv_StartStopMomana.request.stop = false;
-    }
-
-    // call service in node momana
-    if (start_stop_momana_client.call(srv_StartStopMomana)) {
-      if (srv_StartStopMomana.response.state) {
-        ROS_INFO("Momana Started");
-        momana_started = true;
+    if ((ros::Time::now() - buttonStart_pressed_instant) > delay_button) {
+      buttonStart_pressed_instant = ros::Time::now();
+      if(momana_started){
+        //We want to stop
+        srv_StartStopMomana.request.start = false;
+        srv_StartStopMomana.request.stop = true;
       } else {
-        ROS_INFO("Momana Stopped");
-        momana_started = false;
+        //We want to start
+        srv_StartStopMomana.request.start = true;
+        srv_StartStopMomana.request.stop = false;
       }
-    } else {
-      ROS_ERROR("Failed to call service /tud_momana/start_stop");
-    }
+
+      // call service in node momana
+      if (start_stop_momana_client.call(srv_StartStopMomana)) {
+        if (srv_StartStopMomana.response.state) {
+          ROS_INFO("Momana Started");
+          momana_started = true;
+        } else {
+          ROS_INFO("Momana Stopped");
+          momana_started = false;
+        }
+      } else {
+        ROS_ERROR("Failed to call service /tud_momana/start_stop");
+      }
+
 
     }
+    else{
+      ROS_INFO("waiting delay button");
+    }
+  }
 
   twist_pub.publish(out_twist);
 }
@@ -150,6 +158,7 @@ int main(int argc, char* argv[]) {
   ros::NodeHandle nh;
 
   buttonTakeoff_pressed_instant = ros::Time::now();
+  buttonStart_pressed_instant = ros::Time::now();
   set_controller_client = nh.serviceClient<tud_coop_uv::SetController>(
       "tud_coop_uv/set_controller");
   start_stop_momana_client = nh.serviceClient<tud_momana::StartStopMomana>("tud_momana/start_stop");
