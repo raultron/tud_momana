@@ -24,6 +24,8 @@ public:
 
 
     void run(void);
+    bool check_c3po_move_server(void);
+    bool check_r2d2_move_server(void);
     void sendGoal_and_wait_c3po(const robotino_local_move::LocalMoveGoal& goal);
     void sendGoal_and_wait_r2d2(const robotino_local_move::LocalMoveGoal& goal);
 

@@ -53,8 +53,33 @@ void MomanaNode::run(void) {
 
   // Start Odom messages publishing
 
+  result = check_c3po_move_server();
+  if(!result)
+    return;
+
+  result = check_r2d2_move_server();
+  if(!result)
+    return;
+
+
+  // main loop
+  for (int i = 0; i < 3; i++) {
+    ROS_INFO("Move R2D2 half a meter to the front");
+    goal_r2d2.move_x = 0.5;
+    sendGoal_and_wait_r2d2(goal_r2d2);
+
+    ROS_INFO("SIMULATED Move C3P0 half a meter to the front");
+    goal_c3po.move_x = 0.5;
+    sendGoal_and_wait_c3po(goal_c3po);
+    ros::Duration(15).sleep();
+  }
+
+  state_ = Idle;
+}
+
+bool MomanaNode::check_c3po_move_server(void){
   // check for c3po service
-  result = false;
+  bool result = false;
   while(!result){
     ROS_INFO("Waiting 5s for c3po local move server");
     result = ac_c3po_.waitForServer(ros::Duration(5));
@@ -64,13 +89,16 @@ void MomanaNode::run(void) {
     if(state_==Idle){
       ROS_INFO("Exiting running thread..");
       state_==Idle;
-      return;
+      return false;
     }
   }
   ROS_INFO("c3po Local move server found");
+  return true;
+}
 
+bool MomanaNode::check_r2d2_move_server(void){
   // check for r2d2 service
-  result = false;
+  bool result = false;
   while(!result){
     ROS_INFO("Waiting 5s for r2d2 local move server");
     result = ac_r2d2_.waitForServer(ros::Duration(5));
@@ -80,37 +108,11 @@ void MomanaNode::run(void) {
     if(state_==Idle){
       ROS_INFO("Exiting running thread..");
       state_==Idle;
-      return;
+      return false;
     }
   }
-  // main loop
-  for (int i = 0; i < 3; i++) {
-    // Move R2D2 half a meter to the front
-    ROS_INFO("Move R2D2 half a meter to the front");
-    goal_r2d2.move_x = 0.5;
-    sendGoal_and_wait_r2d2(goal_r2d2);
-
-    ros::spinOnce();
-    if (state_==Idle){
-      return;
-    }
-
-
-    // Move C3PO half a meter to the front
-    ROS_INFO("SIMULATED Move C3P0 half a meter to the front");
-    goal_c3po.move_x = 0.5;
-    sendGoal_and_wait_c3po(goal_c3po);
-    ros::Duration(15).sleep();
-
-    ros::spinOnce();
-    if (state_==Idle){
-      return;
-    }
-  }
-
-  state_ = Idle;
-
-
+  ROS_INFO("r2d2 Local move server found");
+  return true;
 }
 
 void MomanaNode::sendGoal_and_wait_c3po(const robotino_local_move::LocalMoveGoal& goal){
@@ -136,3 +138,4 @@ void MomanaNode::sendGoal_and_wait_r2d2(const robotino_local_move::LocalMoveGoal
     ROS_INFO("C3PO Action did not finish before the time out.");
   }
 }
+
