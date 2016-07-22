@@ -11,7 +11,7 @@
     <param name="autorepeat_rate" value="20" />
   </node>
 
-  <node pkg="tud_momana" name="joy_control" type="joy_control"/>
+  <node pkg="tud_momana" name="joy_control_momana" type="joy_control_momana"/>
 
   <node pkg="ardrone_velocity" name="pid_control" type="pid_control" output="screen" />  
 
@@ -21,6 +21,12 @@
 
   <node pkg="tud_coop_uv" name="define_target" type="define_target" output="screen" />
 
-  <node pkg="tud_momana" name="momana" type="momana"/>
+  <node pkg="tud_momana" name="momana" type="momana" output="screen"/>
+
+  <node pkg="tud_momana" name="momana_odom" type="momana_odom" output="screen"/>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="c3po_base_link_tf" args="0 0 0 0 0 0 1 c3po_marker_top c3po_base_link" />
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="r2d2_base_link_tf" args="0 0 0 0 0 0 1 r2d2_marker_top r2d2_base_link" />
 
 </launch>

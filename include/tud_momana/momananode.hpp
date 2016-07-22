@@ -9,6 +9,8 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include "robotino_local_move/LocalMoveAction.h"
+#include <std_srvs/Empty.h>
+#include <std_msgs/Empty.h>
 
 enum State { Idle, Running, Paused, Finished };
 
@@ -29,8 +31,11 @@ public:
     void sendGoal_and_wait_c3po(const robotino_local_move::LocalMoveGoal& goal);
     void sendGoal_and_wait_r2d2(const robotino_local_move::LocalMoveGoal& goal);
 
+
+
 private:
   ros::ServiceServer start_stop_momana_srv_;
+  ros::ServiceClient switch_static_client_;
   State state_;
   boost::thread run_thread_;
 

@@ -6,6 +6,8 @@ MomanaNode::MomanaNode()
   state_ = Idle;
   start_stop_momana_srv_ = nh_.advertiseService(
       "tud_momana/start_stop", &MomanaNode::start_stop_service_callback, this);
+
+  switch_static_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/switch_static_ref");
 }
 
 bool MomanaNode::start_stop_service_callback(
@@ -49,6 +51,9 @@ bool MomanaNode::start_stop_service_callback(
 
 void MomanaNode::run(void) {
   robotino_local_move::LocalMoveGoal goal_r2d2, goal_c3po;
+  std_srvs::Empty::Request req;
+  std_srvs::Empty::Response res;
+
   bool result = false;
 
   // Start Odom messages publishing
@@ -57,21 +62,26 @@ void MomanaNode::run(void) {
   if(!result)
     return;
 
+
   result = check_r2d2_move_server();
   if(!result)
     return;
 
 
   // main loop
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 2; i++) {
     ROS_INFO("Move R2D2 half a meter to the front");
     goal_r2d2.move_x = 0.5;
     sendGoal_and_wait_r2d2(goal_r2d2);
+
+    switch_static_client_.call(req, res);
 
     ROS_INFO("SIMULATED Move C3P0 half a meter to the front");
     goal_c3po.move_x = 0.5;
     sendGoal_and_wait_c3po(goal_c3po);
     ros::Duration(15).sleep();
+
+    switch_static_client_.call(req, res);
   }
 
   state_ = Idle;

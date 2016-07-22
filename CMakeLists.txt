@@ -11,10 +11,12 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     std_msgs
+    std_srvs
     nav_msgs
     message_generation
     actionlib_msgs
     actionlib
+    tf
 )
 
 find_package(Boost REQUIRED COMPONENTS thread)
@@ -75,6 +77,7 @@ add_service_files(
   DIRECTORY srv
   FILES
   StartStopMomana.srv
+  StartOdometry.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -87,7 +90,7 @@ add_service_files(
 ## Generate added messages and services with any dependencies listed here
 #generate_messages(DEPENDENCIES  std_msgs)
 
-generate_messages(DEPENDENCIES  std_msgs)
+generate_messages(DEPENDENCIES std_msgs)
 
 ## Generate dynamic parameters
 #generate_dynamic_reconfigure_options(
@@ -107,7 +110,7 @@ generate_messages(DEPENDENCIES  std_msgs)
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES coop_uv
-  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs nav_msgs message_runtime
+  CATKIN_DEPENDS roscpp rospy std_msgs std_srvs geometry_msgs nav_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -134,6 +137,15 @@ set(MOMANA_HEADER_FILES
     include/tud_momana/momananode.hpp
 )
 
+set(MOMANAODOM_SOURCE_FILES
+    src/momanaodom.cpp
+    src/momanaodomnode.cpp
+)
+
+set(MOMANAODOM_HEADER_FILES
+    include/tud_momana/momanaodomnode.hpp
+)
+
 #set(PIDCONTROL_SOURCE_FILES
 #    src/pid_control.cpp
 #    src/controlnode.cpp
@@ -148,6 +160,7 @@ set(MOMANA_HEADER_FILES
 
 ## Declare a cpp executable
 add_executable(momana ${MOMANA_SOURCE_FILES} ${MOMANA_HEADER_FILES})
+add_executable(momana_odom ${MOMANAODOM_SOURCE_FILES} ${MOMANAODOM_HEADER_FILES})
 add_executable(joy_control_momana src/joy_control.cpp)
 #add_executable(pid_control ${PIDCONTROL_SOURCE_FILES} ${PIDCONTROL_HEADER_FILES})
 #add_executable(test_controller src/test_controller.cpp)
@@ -164,6 +177,10 @@ add_dependencies(momana
   ${robotino_local_move_EXPORTED_TARGETS})
 
 add_dependencies(
+  momana_odom
+  tud_momana_generate_messages_cpp)
+
+add_dependencies(
   joy_control_momana
   tud_coop_uv
   tud_coop_uv_generate_messages_cpp
@@ -176,6 +193,7 @@ add_dependencies(
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(momana ${catkin_LIBRARIES})
+target_link_libraries(momana_odom ${catkin_LIBRARIES})
 target_link_libraries(joy_control_momana ${catkin_LIBRARIES})
 #target_link_libraries(pid_control ${catkin_LIBRARIES})
 #target_link_libraries(test_controller ${catkin_LIBRARIES})

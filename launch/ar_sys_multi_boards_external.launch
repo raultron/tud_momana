@@ -14,8 +14,8 @@
 	<arg name="video_info_topic" default="camera_info"/>
 	<arg name="video_rectified" default="true" />
 
-	<arg name="boards_config" default="$(find ar_sys)/data/multi/boards.yml" />
-	<arg name="boards_directory" default="$(find ar_sys)/data/multi" />
+  <arg name="boards_config" default="$(find tud_momana)/markers/aruco/ground_robots/boards.yml" />
+  <arg name="boards_directory" default="$(find tud_momana)/markers/aruco/ground_robots" />
 
 	<group if="$(arg camera_enable)">
 		<node name="cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
@@ -33,7 +33,7 @@
 	  </node>
 		<node ns="$(arg video_namespace)" pkg="image_proc" type="image_proc" name="image_proc$(arg uid)" />
 		qx  qy qz qw
-		<node pkg="tf" type="static_transform_publisher" name="chessb_tf_broadcaster" args="0 0 -0.068 0.707107 -0.707106 0 0 /ardrone_base_link /cam 100"/> 
+    <node pkg="tf" type="static_transform_publisher" name="ardrone_to_cam_tf" args="0 0 -0.068 0.707107 -0.707106 0 0 /ardrone_base_link /cam 100"/>
 	</group>
 
 	<node ns="/" pkg="ar_sys" type="multi_boards" name="ar_multi_boards$(arg uid)" output="screen">

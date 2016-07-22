@@ -9,9 +9,9 @@
 		<remap from="robotino_joint_states" to="joint_states" />
 		<!--remap from="image_raw" to="image"/-->
 	</node>
-    <node ns="c3po" name="robotino_odometry_node" pkg="robotino_node" type="robotino_odometry_node" output="screen">
+    <!--node ns="c3po" name="robotino_odometry_node" pkg="robotino_node" type="robotino_odometry_node" output="screen">
         <param name="hostname" value="$(arg hostname)" />
-    </node>
+    </node /-->
   <node ns="c3po" pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
     	<param name="publish_frequency" type="double" value="20.0" />
   </node>
