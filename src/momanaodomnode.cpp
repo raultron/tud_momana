@@ -1,11 +1,12 @@
 #include "tud_momana/momanaodomnode.hpp"
 
 MomanaOdomNode::MomanaOdomNode(): sequence_(0) {
-  start_odom_srv_ =
-      nh_.advertiseService("tud_momana/start_odom",
-                           &MomanaOdomNode::start_odom_service_callback, this);
+  //start_odom_srv_ =
+  //    nh_.advertiseService("tud_momana/start_odom",
+  //                         &MomanaOdomNode::start_odom_service_callback, this);
 
   switch_static_ref_srv_ = nh_.advertiseService("tud_momana/switch_static_ref", &MomanaOdomNode::switch_static_ref_service_callback, this);
+  start_odom_srv_ = nh_.advertiseService("tud_momana/start_odom", &MomanaOdomNode::start_odom_service_callback, this);
 
 
   odometry_pub_c3po_ = nh_.advertise<nav_msgs::Odometry>("/c3po/odom", 1, true);
@@ -29,19 +30,6 @@ MomanaOdomNode::MomanaOdomNode(): sequence_(0) {
   r2d2_odometry_msg_.child_frame_id = "rel_r2d2_base_link";
 }
 
-bool MomanaOdomNode::start_odom_service_callback(
-    tud_momana::StartOdometry::Request& request,
-    tud_momana::StartOdometry::Response& response) {
-
-  if (request.start) {
-    ROS_INFO("Starting relative odometry on ground robots");
-    // Start odometry system ()
-    init_odom();
-    response.result = true;
-  } else {
-    response.result = false;
-  }
-}
 
 tf::StampedTransform MomanaOdomNode::get_c3po_to_r2d2(void){
   tf::StampedTransform c3po_to_r2d2;
@@ -142,6 +130,8 @@ void MomanaOdomNode::publish_odometry(void){
   tf::poseTFToMsg(odom_to_c3po_rel_, c3po_pose);
   tf::poseTFToMsg(odom_to_r2d2_rel_, r2d2_pose);
 
+  ROS_INFO("C3PO odom x: %f", c3po_pose.position.x);
+
   // Construct c3po odometry message
   c3po_odometry_msg_.header.seq = sequence_;
   c3po_odometry_msg_.header.stamp = odom_to_c3po_rel_.stamp_;
@@ -185,3 +175,25 @@ bool MomanaOdomNode::switch_static_ref_service_callback(std_srvs::Empty::Request
   }
   return true;
 }
+
+bool MomanaOdomNode::start_odom_service_callback(std_srvs::Empty::Request& request,
+                                                 std_srvs::Empty::Response& response){
+  ROS_INFO("Starting relative odometry on ground robots");
+  init_odom();
+  return true;
+
+//    tud_momana::StartOdometry::Request& request,
+//    tud_momana::StartOdometry::Response& response) {
+
+//  if (request.start) {
+//    ROS_INFO("Starting relative odometry on ground robots");
+//    // Start odometry system ()
+//    init_odom();
+//    response.result = true;
+//  } else {
+//    response.result = false;
+//  }
+}
+
+///TODO(racuna) read the odometry from the robotinos and use this information when the transformation is too old. (safeguard)
+/// Also find a way to stop the Action if by any change we are not detecting the robots.

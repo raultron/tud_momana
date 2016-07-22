@@ -8,6 +8,7 @@ MomanaNode::MomanaNode()
       "tud_momana/start_stop", &MomanaNode::start_stop_service_callback, this);
 
   switch_static_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/switch_static_ref");
+  start_odom_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/start_odom");
 }
 
 bool MomanaNode::start_stop_service_callback(
@@ -57,6 +58,7 @@ void MomanaNode::run(void) {
   bool result = false;
 
   // Start Odom messages publishing
+  start_odom_client_.call(req, res);
 
   result = check_c3po_move_server();
   if(!result)
@@ -73,13 +75,13 @@ void MomanaNode::run(void) {
     ROS_INFO("Move R2D2 half a meter to the front");
     goal_r2d2.move_x = 0.5;
     sendGoal_and_wait_r2d2(goal_r2d2);
-
+    //ros::Duration(10).sleep();
     switch_static_client_.call(req, res);
 
     ROS_INFO("SIMULATED Move C3P0 half a meter to the front");
     goal_c3po.move_x = 0.5;
     sendGoal_and_wait_c3po(goal_c3po);
-    ros::Duration(15).sleep();
+    //ros::Duration(10).sleep();
 
     switch_static_client_.call(req, res);
   }
@@ -126,18 +128,6 @@ bool MomanaNode::check_r2d2_move_server(void){
 }
 
 void MomanaNode::sendGoal_and_wait_c3po(const robotino_local_move::LocalMoveGoal& goal){
-  ac_r2d2_.sendGoal(goal);
-  // wait for the action to return
-  bool finished_before_timeout = ac_r2d2_.waitForResult(ros::Duration(30.0));
-  if (finished_before_timeout) {
-    actionlib::SimpleClientGoalState state = ac_r2d2_.getState();
-    ROS_INFO("C3PO Action finished: %s", state.toString().c_str());
-  } else {
-    ROS_INFO("C3PO Action did not finish before the time out.");
-  }
-}
-
-void MomanaNode::sendGoal_and_wait_r2d2(const robotino_local_move::LocalMoveGoal& goal){
   ac_c3po_.sendGoal(goal);
   // wait for the action to return
   bool finished_before_timeout = ac_c3po_.waitForResult(ros::Duration(30.0));
@@ -146,6 +136,18 @@ void MomanaNode::sendGoal_and_wait_r2d2(const robotino_local_move::LocalMoveGoal
     ROS_INFO("C3PO Action finished: %s", state.toString().c_str());
   } else {
     ROS_INFO("C3PO Action did not finish before the time out.");
+  }
+}
+
+void MomanaNode::sendGoal_and_wait_r2d2(const robotino_local_move::LocalMoveGoal& goal){
+  ac_r2d2_.sendGoal(goal);
+  // wait for the action to return
+  bool finished_before_timeout = ac_r2d2_.waitForResult(ros::Duration(30.0));
+  if (finished_before_timeout) {
+    actionlib::SimpleClientGoalState state = ac_r2d2_.getState();
+    ROS_INFO("R2D2 Action finished: %s", state.toString().c_str());
+  } else {
+    ROS_INFO("R2D2 Action did not finish before the time out.");
   }
 }
 

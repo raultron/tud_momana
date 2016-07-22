@@ -15,8 +15,10 @@ public:
     ros::NodeHandle nh_;
 
     // ROS services callbacks
-    bool start_odom_service_callback(tud_momana::StartOdometry::Request& request,
-                                 tud_momana::StartOdometry::Response& response);
+    //bool start_odom_service_callback(tud_momana::StartOdometry::Request& request,
+    //                             tud_momana::StartOdometry::Response& response);
+    bool start_odom_service_callback(std_srvs::Empty::Request& request,
+                                 std_srvs::Empty::Response& response);
     bool switch_static_ref_service_callback(std_srvs::Empty::Request& request,
                                             std_srvs::Empty::Response& response);
 
