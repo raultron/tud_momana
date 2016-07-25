@@ -74,13 +74,13 @@ void MomanaNode::run(void) {
   for (int i = 0; i < 2; i++) {
     ROS_INFO("Move R2D2 half a meter to the front");
     goal_r2d2.move_x = 0.5;
-    sendGoal_and_wait_r2d2(goal_r2d2);
+    sendGoal_and_wait_r2d2(goal_r2d2, ros::Duration(10));
     //ros::Duration(10).sleep();
     switch_static_client_.call(req, res);
 
     ROS_INFO("SIMULATED Move C3P0 half a meter to the front");
     goal_c3po.move_x = 0.5;
-    sendGoal_and_wait_c3po(goal_c3po);
+    sendGoal_and_wait_c3po(goal_c3po, ros::Duration(10));
     //ros::Duration(10).sleep();
 
     switch_static_client_.call(req, res);
@@ -127,27 +127,64 @@ bool MomanaNode::check_r2d2_move_server(void){
   return true;
 }
 
-void MomanaNode::sendGoal_and_wait_c3po(const robotino_local_move::LocalMoveGoal& goal){
+void MomanaNode::sendGoal_and_wait_c3po(const robotino_local_move::LocalMoveGoal& goal, ros::Duration duration){
+  ros::Time start_time = ros::Time::now();
+  bool OdometryAvailable = true;
+
   ac_c3po_.sendGoal(goal);
-  // wait for the action to return
-  bool finished_before_timeout = ac_c3po_.waitForResult(ros::Duration(30.0));
-  if (finished_before_timeout) {
-    actionlib::SimpleClientGoalState state = ac_c3po_.getState();
-    ROS_INFO("C3PO Action finished: %s", state.toString().c_str());
-  } else {
-    ROS_INFO("C3PO Action did not finish before the time out.");
+
+  while(nh_.ok()){
+    // wait for the action to return
+    if (ac_c3po_.waitForResult(ros::Duration(1.0) ) ){
+      actionlib::SimpleClientGoalState state = ac_c3po_.getState();
+      ROS_INFO("C3PO Action finished: %s", state.toString().c_str());
+      break;
+    } else {
+      ROS_INFO("C3PO Action did not finish before the time out.");
+    }
+    if( ( ros::Time::now() - start_time ) > duration )
+    {
+      ROS_INFO( "Timeout: Aborting Local move" );
+      ac_c3po_.cancelAllGoals();
+      break;
+    }
+    //OdometryAvailable = check_odometry();
+    if(!OdometryAvailable){
+      ROS_INFO( "Odometry Down: Aborting Local move" );
+      ac_c3po_.cancelAllGoals();
+      break;
+    }
+    ros::spinOnce();
   }
 }
 
-void MomanaNode::sendGoal_and_wait_r2d2(const robotino_local_move::LocalMoveGoal& goal){
+void MomanaNode::sendGoal_and_wait_r2d2(const robotino_local_move::LocalMoveGoal& goal, ros::Duration duration){
+  ros::Time start_time = ros::Time::now();
+  bool OdometryAvailable = true;
+
   ac_r2d2_.sendGoal(goal);
-  // wait for the action to return
-  bool finished_before_timeout = ac_r2d2_.waitForResult(ros::Duration(30.0));
-  if (finished_before_timeout) {
-    actionlib::SimpleClientGoalState state = ac_r2d2_.getState();
-    ROS_INFO("R2D2 Action finished: %s", state.toString().c_str());
-  } else {
-    ROS_INFO("R2D2 Action did not finish before the time out.");
+
+  while(nh_.ok()){
+    // wait for the action to return
+    if ( ac_r2d2_.waitForResult( ros::Duration(1.0) ) ) {
+      actionlib::SimpleClientGoalState state = ac_r2d2_.getState();
+      ROS_INFO("R2D2 Action finished: %s", state.toString().c_str());
+      break;
+    } else {
+      ROS_INFO("R2D2 Action did not finish before the time out.");
+    }
+    if( ( ros::Time::now() - start_time ) > duration )
+    {
+      ROS_INFO( "Timeout: Aborting Local move" );
+      ac_r2d2_.cancelAllGoals();
+      break;
+    }
+    //OdometryAvailable = check_odometry();
+    if(!OdometryAvailable){
+      ROS_INFO( "Odometry Down: Aborting Local move" );
+      ac_r2d2_.cancelAllGoals();
+      break;
+    }
+    ros::spinOnce();
   }
 }
-
