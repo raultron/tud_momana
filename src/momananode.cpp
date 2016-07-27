@@ -7,8 +7,12 @@ MomanaNode::MomanaNode()
   start_stop_momana_srv_ = nh_.advertiseService(
       "tud_momana/start_stop", &MomanaNode::start_stop_service_callback, this);
 
+  set_c3po_static_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/set_c3po_static");
+  set_r2d2_static_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/set_r2d2_static");
   switch_static_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/switch_static_ref");
   start_odom_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/start_odom");
+  std_srvs::Empty::Request req;
+  std_srvs::Empty::Response res;
 }
 
 bool MomanaNode::start_stop_service_callback(
@@ -58,33 +62,50 @@ void MomanaNode::run(void) {
   bool result = false;
 
   // Start Odom messages publishing
+  // This sets c3po as static
   start_odom_client_.call(req, res);
 
-  result = check_c3po_move_server();
-  if(!result)
-    return;
+//  result = check_c3po_move_server();
+//  if(!result)
+//    return;
 
 
-  result = check_r2d2_move_server();
-  if(!result)
-    return;
+//  result = check_r2d2_move_server();
+//  if(!result)
+//    return;
 
 
-  // main loop
-  for (int i = 0; i < 2; i++) {
-    ROS_INFO("Move R2D2 half a meter to the front");
-    goal_r2d2.move_x = 0.5;
-    sendGoal_and_wait_r2d2(goal_r2d2, ros::Duration(10));
-    //ros::Duration(10).sleep();
-    switch_static_client_.call(req, res);
+//  // Move both robots 2m to the front
+//  for (int i = 0; i < 4; i++) {
+//    ROS_INFO("Move R2D2 half a meter to the front");
+//    goal_r2d2.move_x = 0.5;
+//    sendGoal_and_wait_r2d2(goal_r2d2, ros::Duration(10));
+//    //ros::Duration(10).sleep();
+//    set_r2d2_static_client_.call(req, res);
 
-    ROS_INFO("SIMULATED Move C3P0 half a meter to the front");
-    goal_c3po.move_x = 0.5;
-    sendGoal_and_wait_c3po(goal_c3po, ros::Duration(10));
-    //ros::Duration(10).sleep();
+//    ROS_INFO("SIMULATED Move C3P0 half a meter to the front");
+//    goal_c3po.move_x = 0.5;
+//    sendGoal_and_wait_c3po(goal_c3po, ros::Duration(10));
+//    //ros::Duration(10).sleep();
 
-    switch_static_client_.call(req, res);
-  }
+//    set_c3po_static_client_.call(req, res);
+//  }
+
+//  // Rotate both robots to the right 90 degrees
+//  ROS_INFO("Rotate r2d2 90 degrees to the right");
+//  goal_r2d2.move_x = 0;
+//  goal_r2d2.rotation = -1.5708; //-90°
+//  sendGoal_and_wait_r2d2(goal_r2d2, ros::Duration(10));
+
+//  set_r2d2_static_client_.call(req, res);
+
+//  ROS_INFO("Rotate c3po 90 degrees to the right");
+//  goal_c3po.move_x = 0;
+//  goal_c3po.rotation = -1.5708; //-90°
+//  sendGoal_and_wait_c3po(goal_c3po, ros::Duration(10));
+
+//  set_c3po_static_client_.call(req, res);
+
 
   state_ = Idle;
 }

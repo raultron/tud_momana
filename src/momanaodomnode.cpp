@@ -5,6 +5,8 @@ MomanaOdomNode::MomanaOdomNode(): sequence_(0) {
   //    nh_.advertiseService("tud_momana/start_odom",
   //                         &MomanaOdomNode::start_odom_service_callback, this);
 
+  set_c3po_static_srv_ = nh_.advertiseService("tud_momana/set_c3po_static", &MomanaOdomNode::set_c3po_static_service_callback, this);
+  set_r2d2_static_srv_ = nh_.advertiseService("tud_momana/set_r2d2_static", &MomanaOdomNode::set_r2d2_static_service_callback, this);
   switch_static_ref_srv_ = nh_.advertiseService("tud_momana/switch_static_ref", &MomanaOdomNode::switch_static_ref_service_callback, this);
   start_odom_srv_ = nh_.advertiseService("tud_momana/start_odom", &MomanaOdomNode::start_odom_service_callback, this);
 
@@ -16,18 +18,18 @@ MomanaOdomNode::MomanaOdomNode(): sequence_(0) {
                          "/ardrone_base_link");
 
   // Transformation frames_id
-  odom_to_c3po_rel_.frame_id_ = "rel_odom";
-  odom_to_c3po_rel_.child_frame_id_ = "rel_c3po_base_link";
+  odom_to_c3po_rel_.frame_id_ = "rel_c3po/odom";
+  odom_to_c3po_rel_.child_frame_id_ = "rel_c3po/base_link";
 
-  odom_to_r2d2_rel_.frame_id_ = "rel_odom";
-  odom_to_r2d2_rel_.child_frame_id_ = "rel_r2d2_base_link";
+  odom_to_r2d2_rel_.frame_id_ = "rel_r2d2/odom";
+  odom_to_r2d2_rel_.child_frame_id_ = "rel_r2d2/base_link";
 
   // Odometry frames_id
-  c3po_odometry_msg_.header.frame_id = "rel_odom";
-  c3po_odometry_msg_.child_frame_id = "rel_c3po_base_link";
+  c3po_odometry_msg_.header.frame_id = "rel_c3po/odom";
+  c3po_odometry_msg_.child_frame_id = "rel_c3po/base_link";
 
-  r2d2_odometry_msg_.header.frame_id = "rel_odom";
-  r2d2_odometry_msg_.child_frame_id = "rel_r2d2_base_link";
+  r2d2_odometry_msg_.header.frame_id = "rel_r2d2/odom";
+  r2d2_odometry_msg_.child_frame_id = "rel_r2d2/base_link";
 }
 
 
@@ -95,8 +97,8 @@ void MomanaOdomNode::c3po_static_calc(void){
   ros::Time now = ros::Time::now();
 
   // c3po static no new transform calculation
-  odom_to_c3po_rel_ = odom_to_c3po_rel_;
-  odom_to_r2d2_rel_.stamp_ = now;
+  //odom_to_c3po_rel_ = odom_to_c3po_rel_;
+  odom_to_c3po_rel_.stamp_ = now;
 
   // we calculate r2d2 relative transform
   c3po_to_r2d2_ = get_c3po_to_r2d2(); //from quad_camera
@@ -108,7 +110,7 @@ void MomanaOdomNode::r2d2_static_calc(void){
   ros::Time now = ros::Time::now();
 
   // r2d2 static no new transform calculation
-  odom_to_r2d2_rel_ = odom_to_r2d2_rel_;
+  //odom_to_r2d2_rel_ = odom_to_r2d2_rel_;
   odom_to_r2d2_rel_.stamp_ = now;
 
   // we calculate c3po relative transform
@@ -176,6 +178,18 @@ bool MomanaOdomNode::switch_static_ref_service_callback(std_srvs::Empty::Request
   return true;
 }
 
+bool MomanaOdomNode::set_c3po_static_service_callback(std_srvs::Empty::Request& request,
+                                        std_srvs::Empty::Response& response){
+  set_c3po_static();
+  return true;
+}
+
+bool MomanaOdomNode::set_r2d2_static_service_callback(std_srvs::Empty::Request& request,
+                                        std_srvs::Empty::Response& response){
+  set_r2d2_static();
+  return true;
+}
+
 bool MomanaOdomNode::start_odom_service_callback(std_srvs::Empty::Request& request,
                                                  std_srvs::Empty::Response& response){
   ROS_INFO("Starting relative odometry on ground robots");
@@ -197,3 +211,4 @@ bool MomanaOdomNode::start_odom_service_callback(std_srvs::Empty::Request& reque
 
 ///TODO(racuna) read the odometry from the robotinos and use this information when the transformation is too old. (safeguard)
 /// Also find a way to stop the Action if by any change we are not detecting the robots.
+

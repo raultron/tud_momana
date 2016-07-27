@@ -36,6 +36,8 @@ public:
 private:
   ros::ServiceServer start_stop_momana_srv_;
   ros::ServiceClient switch_static_client_;
+  ros::ServiceClient set_c3po_static_client_;
+  ros::ServiceClient set_r2d2_static_client_;
   ros::ServiceClient start_odom_client_;
   State state_;
   boost::thread run_thread_;

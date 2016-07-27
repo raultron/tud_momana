@@ -21,6 +21,10 @@ public:
                                  std_srvs::Empty::Response& response);
     bool switch_static_ref_service_callback(std_srvs::Empty::Request& request,
                                             std_srvs::Empty::Response& response);
+    bool set_c3po_static_service_callback(std_srvs::Empty::Request& request,
+                                            std_srvs::Empty::Response& response);
+    bool set_r2d2_static_service_callback(std_srvs::Empty::Request& request,
+                                            std_srvs::Empty::Response& response);
 
     void init_odom();
     void publish_transforms(void);
@@ -36,6 +40,8 @@ public:
 
 private:
     ros::ServiceServer start_odom_srv_;
+    ros::ServiceServer set_c3po_static_srv_;
+    ros::ServiceServer set_r2d2_static_srv_;
     ros::ServiceServer switch_static_ref_srv_;
 
     ros::Publisher odometry_pub_c3po_;
