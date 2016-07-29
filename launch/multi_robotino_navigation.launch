@@ -9,12 +9,13 @@
   <!-- rel_odom to rel_c3po/odom-->
   <node pkg="tf2_ros" type="static_transform_publisher" name="rel_c3po_odom_tf" args="0 0 0 0 0 0 1 rel_odom rel_c3po/odom" />
 
-  <!-- odom to rel_odom -->
+  <!-- rel_odom to rel_r2d2/odom-->
   <node pkg="tf2_ros" type="static_transform_publisher" name="rel_r2d2_odom_tf" args="0 0 0 0 0 0 1 rel_odom rel_r2d2/odom" />
+
 
   <!-- Run the map server -->
   <!-- Please check the file path for map files (yaml and pgm) before execution -->
-  <arg name="map_file" default="$(find robotino_navigation)/maps/sample.yaml" />
+  <arg name="map_file" default="$(find tud_momana)/maps/robotics_lab.yaml" />
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
     <param name="frame_id" value="/map" />
   </node>

@@ -64,15 +64,19 @@ void MomanaOdomNode::init_odom(void){
   set_c3po_static();
 
   odom_initialized_ = true;
+  ROS_INFO("----------------------------------------------------------------------");
+  ROS_INFO("-------------Relative Odometry Initialized (C3PO Static)--------------");
+  ROS_INFO("----------------------------------------------------------------------");
 
   momana_odom_spin();
 }
 
 void MomanaOdomNode::wait_for_transforms(void){
-  ros::Time now = ros::Time::now();
+  ros::Time now;
   bool transform_available = false;
   while(!transform_available){
-    ROS_INFO("waiting for a transformation between r2d2 and c3po");
+    now = ros::Time::now();
+    ROS_INFO("MomanaOdom: waiting for a transformation between r2d2 and c3po");
     try {
       transform_available = tf_listener_.waitForTransform("c3po_base_link", "r2d2_base_link", now,
                                     ros::Duration(5));
@@ -132,7 +136,7 @@ void MomanaOdomNode::publish_odometry(void){
   tf::poseTFToMsg(odom_to_c3po_rel_, c3po_pose);
   tf::poseTFToMsg(odom_to_r2d2_rel_, r2d2_pose);
 
-  ROS_INFO("C3PO odom x: %f", c3po_pose.position.x);
+  ROS_DEBUG("C3PO odom x: %f", c3po_pose.position.x);
 
   // Construct c3po odometry message
   c3po_odometry_msg_.header.seq = sequence_;

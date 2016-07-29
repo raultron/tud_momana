@@ -2,7 +2,11 @@
 
 
 MomanaNode::MomanaNode()
-    : ac_c3po_("/c3po/local_move", true), ac_r2d2_("/r2d2/local_move", true) {
+    : ac_c3po_("/c3po/local_move", true),
+      ac_r2d2_("/r2d2/local_move", true),
+      ac_c3po_move_base_("/c3po/move_base", true),
+      ac_r2d2_move_base_("/r2d2/move_base", true)
+{
   state_ = Idle;
   start_stop_momana_srv_ = nh_.advertiseService(
       "tud_momana/start_stop", &MomanaNode::start_stop_service_callback, this);
@@ -65,15 +69,25 @@ void MomanaNode::run(void) {
   // This sets c3po as static
   start_odom_client_.call(req, res);
 
-//  result = check_c3po_move_server();
-//  if(!result)
-//    return;
+  result = check_c3po_move_base_server();
+  if(!result)
+    return;
 
 
-//  result = check_r2d2_move_server();
-//  if(!result)
-//    return;
+  result = check_r2d2_move_base_server();
+  if(!result)
+    return;
 
+  move_base_msgs::MoveBaseGoal goal;
+  goal.target_pose.header.frame_id = "/rel_r2d2/base_link";
+  goal.target_pose.header.stamp = ros::Time::now();
+  goal.target_pose.pose.position.x = 0.5;
+  goal.target_pose.pose.orientation.w = 1;
+  sendGoal_and_wait_r2d2(goal, ros::Duration(10));
+
+  goal.target_pose.header.frame_id = "/rel_c3po/base_link";
+  goal.target_pose.header.stamp = ros::Time::now();
+  sendGoal_and_wait_c3po(goal, ros::Duration(10));
 
 //  // Move both robots 2m to the front
 //  for (int i = 0; i < 4; i++) {
@@ -110,7 +124,7 @@ void MomanaNode::run(void) {
   state_ = Idle;
 }
 
-bool MomanaNode::check_c3po_move_server(void){
+bool MomanaNode::check_c3po_local_move_server(void){
   // check for c3po service
   bool result = false;
   while(!result){
@@ -129,7 +143,7 @@ bool MomanaNode::check_c3po_move_server(void){
   return true;
 }
 
-bool MomanaNode::check_r2d2_move_server(void){
+bool MomanaNode::check_r2d2_local_move_server(void){
   // check for r2d2 service
   bool result = false;
   while(!result){
@@ -145,6 +159,44 @@ bool MomanaNode::check_r2d2_move_server(void){
     }
   }
   ROS_INFO("r2d2 Local move server found");
+  return true;
+}
+
+bool MomanaNode::check_c3po_move_base_server(void){
+  // check for c3po navigation stack move base server
+  bool result = false;
+  while(!result){
+    ROS_INFO("Waiting 5s for c3po move_base server");
+    result = ac_c3po_move_base_.waitForServer(ros::Duration(5));
+    if(!result){
+      ROS_INFO("Cannot find c3po move_base server");
+    }
+    if(state_==Idle){
+      ROS_INFO("Exiting running thread..");
+      state_==Idle;
+      return false;
+    }
+  }
+  ROS_INFO("c3po move_base server found");
+  return true;
+}
+
+bool MomanaNode::check_r2d2_move_base_server(void){
+  // check for r2d2 navigation stack move base server
+  bool result = false;
+  while(!result){
+    ROS_INFO("Waiting 5s for r2d2 move_base server");
+    result = ac_r2d2_move_base_.waitForServer(ros::Duration(5));
+    if(!result){
+      ROS_INFO("Cannot find r2d2 move_base server");
+    }
+    if(state_==Idle){
+      ROS_INFO("Exiting running thread..");
+      state_==Idle;
+      return false;
+    }
+  }
+  ROS_INFO("r2d2 move_base server found");
   return true;
 }
 
@@ -209,3 +261,65 @@ void MomanaNode::sendGoal_and_wait_r2d2(const robotino_local_move::LocalMoveGoal
     ros::spinOnce();
   }
 }
+
+void MomanaNode::sendGoal_and_wait_c3po(const move_base_msgs::MoveBaseGoal& goal, ros::Duration duration){
+  ros::Time start_time = ros::Time::now();
+  bool OdometryAvailable = true;
+  ac_c3po_move_base_.sendGoal(goal);
+
+  while(nh_.ok()){
+    // wait for the action to return
+    if (ac_c3po_move_base_.waitForResult(ros::Duration(1.0) ) ){
+      actionlib::SimpleClientGoalState state = ac_c3po_move_base_.getState();
+      ROS_INFO("C3PO Action finished: %s", state.toString().c_str());
+      break;
+    } else {
+      ROS_INFO("C3PO Action did not finish before the time out.");
+    }
+    if( ( ros::Time::now() - start_time ) > duration )
+    {
+      ROS_INFO( "Timeout: Aborting move" );
+      ac_c3po_move_base_.cancelAllGoals();
+      break;
+    }
+    //OdometryAvailable = check_odometry();
+    if(!OdometryAvailable){
+      ROS_INFO( "Odometry Down: Aborting Local move" );
+      ac_c3po_move_base_.cancelAllGoals();
+      break;
+    }
+    ros::spinOnce();
+  }
+}
+
+void MomanaNode::sendGoal_and_wait_r2d2(const move_base_msgs::MoveBaseGoal& goal, ros::Duration duration){
+  ros::Time start_time = ros::Time::now();
+  bool OdometryAvailable = true;
+  ac_r2d2_move_base_.sendGoal(goal);
+
+  while(nh_.ok()){
+    // wait for the action to return
+    if (ac_r2d2_move_base_.waitForResult(ros::Duration(1.0) ) ){
+      actionlib::SimpleClientGoalState state = ac_r2d2_move_base_.getState();
+      ROS_INFO("R2D2 Action finished: %s", state.toString().c_str());
+      break;
+    } else {
+      ROS_INFO("R2D2 Action did not finish before the time out.");
+    }
+    if( ( ros::Time::now() - start_time ) > duration )
+    {
+      ROS_INFO( "Timeout: Aborting move" );
+      ac_r2d2_move_base_.cancelAllGoals();
+      break;
+    }
+    //OdometryAvailable = check_odometry();
+    if(!OdometryAvailable){
+      ROS_INFO( "Odometry Down: Aborting Local move" );
+      ac_r2d2_move_base_.cancelAllGoals();
+      break;
+    }
+    ros::spinOnce();
+  }
+}
+
+//! Implement Check ODOMETRY
