@@ -77,17 +77,9 @@ void MomanaNode::run(void) {
   result = check_r2d2_move_base_server();
   if(!result)
     return;
+  square_navigation_test(2,0.6);
 
-  move_base_msgs::MoveBaseGoal goal;
-  goal.target_pose.header.frame_id = "/rel_r2d2/base_link";
-  goal.target_pose.header.stamp = ros::Time::now();
-  goal.target_pose.pose.position.x = 0.5;
-  goal.target_pose.pose.orientation.w = 1;
-  sendGoal_and_wait_r2d2(goal, ros::Duration(10));
 
-  goal.target_pose.header.frame_id = "/rel_c3po/base_link";
-  goal.target_pose.header.stamp = ros::Time::now();
-  sendGoal_and_wait_c3po(goal, ros::Duration(10));
 
 //  // Move both robots 2m to the front
 //  for (int i = 0; i < 4; i++) {
@@ -232,6 +224,7 @@ void MomanaNode::sendGoal_and_wait_c3po(const robotino_local_move::LocalMoveGoal
 }
 
 void MomanaNode::sendGoal_and_wait_r2d2(const robotino_local_move::LocalMoveGoal& goal, ros::Duration duration){
+  std_srvs::Empty::Request req,res;
   ros::Time start_time = ros::Time::now();
   bool OdometryAvailable = true;
 
@@ -263,8 +256,10 @@ void MomanaNode::sendGoal_and_wait_r2d2(const robotino_local_move::LocalMoveGoal
 }
 
 void MomanaNode::sendGoal_and_wait_c3po(const move_base_msgs::MoveBaseGoal& goal, ros::Duration duration){
+  std_srvs::Empty::Request req,res;
   ros::Time start_time = ros::Time::now();
   bool OdometryAvailable = true;
+  set_r2d2_static_client_.call(req, res);
   ac_c3po_move_base_.sendGoal(goal);
 
   while(nh_.ok()){
@@ -293,8 +288,10 @@ void MomanaNode::sendGoal_and_wait_c3po(const move_base_msgs::MoveBaseGoal& goal
 }
 
 void MomanaNode::sendGoal_and_wait_r2d2(const move_base_msgs::MoveBaseGoal& goal, ros::Duration duration){
+  std_srvs::Empty::Request req,res;
   ros::Time start_time = ros::Time::now();
   bool OdometryAvailable = true;
+  set_c3po_static_client_.call(req, res);
   ac_r2d2_move_base_.sendGoal(goal);
 
   while(nh_.ok()){
@@ -323,3 +320,119 @@ void MomanaNode::sendGoal_and_wait_r2d2(const move_base_msgs::MoveBaseGoal& goal
 }
 
 //! Implement Check ODOMETRY
+
+
+void MomanaNode::square_navigation_test(double size_nav_square, double separation){
+  // This function sends the commands to the robots so they navigate
+  // a square of given dimension meanwhile mantaining a separation between them.
+  // Parameters:
+  // size_nav_square (m): Size of the square to navigate
+  // separation (m): Distance to keep between robots.
+
+  // Break distances in segments <= 1m (restriction of relative odometry)
+
+
+  // Build waypoints
+  geometry_msgs::PoseArray waypoints_robotA;
+  geometry_msgs::PoseArray waypoints_robotB;
+  geometry_msgs::Pose pose_robotA, pose_robotB;
+
+  // initial pose of robots (IN MAP FRAME)
+  // Robots aligned with MAP FRAME
+  pose_robotA.orientation.w = pose_robotB.orientation.w = 1;
+
+  //RobotA in this contex is c3po
+  //RobotB in this contex is r2d2
+  pose_robotA.position.x = 0;
+  pose_robotA.position.y = 0;
+  pose_robotA.position.z = 0;
+
+  pose_robotB.position.x = 0;
+  pose_robotB.position.y = pose_robotA.position.y - separation;
+  pose_robotB.position.z = 0;
+
+
+
+  // Move forward 1 meter
+  pose_robotA.position.x += 1;
+  pose_robotB.position.x += 1;
+
+  waypoints_robotA.poses.push_back(pose_robotA);
+  waypoints_robotB.poses.push_back(pose_robotB);
+
+  // Move forward 1 meter
+  pose_robotA.position.x += 1;
+  pose_robotB.position.x += 1;
+
+  waypoints_robotA.poses.push_back(pose_robotA);
+  waypoints_robotB.poses.push_back(pose_robotB);
+
+  // Rotate 90 degrees
+  pose_robotA.orientation = tf::createQuaternionMsgFromYaw(-1.5708); //-90°
+  pose_robotB.orientation = tf::createQuaternionMsgFromYaw(-1.5708); //-90°
+
+  waypoints_robotA.poses.push_back(pose_robotA);
+  waypoints_robotB.poses.push_back(pose_robotB);
+
+
+  // WE START MOVING
+  move_base_msgs::MoveBaseGoal goal;
+  goal.target_pose.header.frame_id = "/map";
+  std::vector<geometry_msgs::Pose>::iterator itA = waypoints_robotA.poses.begin();
+  std::vector<geometry_msgs::Pose>::iterator itB = waypoints_robotB.poses.begin();
+
+  int n_waypoints = waypoints_robotA.poses.size();
+  for (int i = 0; i<n_waypoints; i++){
+    //Goal RobotB
+    goal.target_pose.header.stamp = ros::Time::now();
+    goal.target_pose.pose = waypoints_robotB.poses[i];
+    sendGoal_and_wait_r2d2(goal, ros::Duration(20));
+
+    //Goal RobotB
+    goal.target_pose.header.stamp = ros::Time::now();
+    goal.target_pose.pose = waypoints_robotA.poses[i];
+    sendGoal_and_wait_c3po(goal, ros::Duration(20));
+
+  }
+
+
+
+
+
+
+//  move_base_msgs::MoveBaseGoal goal;
+//  goal.target_pose.header.frame_id = "/rel_r2d2/base_link";
+//  goal.target_pose.header.stamp = ros::Time::now();
+//  goal.target_pose.pose.position.x = 0.5;
+//  goal.target_pose.pose.orientation.w = 1;
+//  sendGoal_and_wait_r2d2(goal, ros::Duration(10));
+
+//  goal.target_pose.header.frame_id = "/rel_c3po/base_link";
+//  goal.target_pose.header.stamp = ros::Time::now();
+//  sendGoal_and_wait_c3po(goal, ros::Duration(10));
+
+
+//  //Move forward the distance given by size_nav_square
+//  const double max_distance_segment = 1.0;
+//  double partial_distance;
+//  double remaining_distance = size_nav_square;
+//  if (remaining_distance > 1.0){
+//    remaining_distance =  size_nav_square - max_distance_segment;
+//    partial_distance = max_distance_segment;
+//  } else{
+//    partial_distance = remaining_distance;
+//  }
+
+  //send command to robot 1 (based on previous position)
+  // new_pos = old_pos + partial distance;
+
+  //send command to robot 2 (based on previous position)
+  // new_pos = old_pos + partial distance;
+
+
+
+
+
+
+
+}

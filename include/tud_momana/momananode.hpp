@@ -12,6 +12,8 @@
 #include "robotino_local_move/LocalMoveAction.h"
 #include <std_srvs/Empty.h>
 #include <std_msgs/Empty.h>
+#include <geometry_msgs/PoseArray.h>
+#include <tf/tf.h>
 
 enum State { Idle, Running, Paused, Finished };
 
@@ -38,6 +40,8 @@ public:
 
     void sendGoal_and_wait_c3po(const move_base_msgs::MoveBaseGoal& goal, ros::Duration duration);
     void sendGoal_and_wait_r2d2(const move_base_msgs::MoveBaseGoal& goal, ros::Duration duration);
+
+    void square_navigation_test(double size_nav_square, double separation);
 
 
 
