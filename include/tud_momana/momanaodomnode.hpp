@@ -7,6 +7,7 @@
 #include "tf/transform_listener.h"
 #include "nav_msgs/Odometry.h"
 #include <std_srvs/Empty.h>
+#include <angles/angles.h>
 
 class MomanaOdomNode
 {

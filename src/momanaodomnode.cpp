@@ -88,11 +88,19 @@ void MomanaOdomNode::wait_for_transforms(void){
 }
 
 void MomanaOdomNode::set_r2d2_static(void){
+  //! TODO(racuna)
+  //!Average one second of measurements to improve pose
+  ros::Duration(2.0).sleep();
+
   c3po_static_ = false;
   r2d2_static_ = true;
 }
 
 void MomanaOdomNode::set_c3po_static(void){
+  //! TODO(racuna)
+  //!Average one second of measurements to improve pose
+  ros::Duration(2.0).sleep();
+
   c3po_static_ = true;
   r2d2_static_ = false;
 }
@@ -158,6 +166,22 @@ void MomanaOdomNode::publish_odometry(void){
 
 
 void MomanaOdomNode::momana_odom_spin(void){
+  //Calculate distance and rotation between markers
+  //for debugging
+  tf::StampedTransform c3po_to_r2d2;
+  c3po_to_r2d2 = get_c3po_to_r2d2();
+  double x,y,z,distance, yaw;
+  tf::Vector3 origin = c3po_to_r2d2.getOrigin();
+  x = origin.x();
+  y = origin.y();
+  z = origin.z();
+
+  distance = std::sqrt(x*x + y*y + z*z);
+  ROS_DEBUG("Distance between markers: %f", distance);
+  yaw = tf::getYaw(c3po_to_r2d2.getRotation());
+  ROS_DEBUG("Yaw Between Markers: %f", angles::to_degrees(yaw));
+
+
   if(odom_initialized_){
     if (c3po_static_){
       c3po_static_calc();
