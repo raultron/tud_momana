@@ -14,7 +14,7 @@
 		<param name="axis_angular" value="2" type="int" />
 
 		<!-- Scale -->
-		<param name="scale_linear" value="0.15" type="double" />
-		<param name="scale_angular" value="0.4" type="double" />
+    <param name="scale_linear" value="0.5" type="double" />
+    <param name="scale_angular" value="2.0" type="double" />
 	</node>
 </launch>
