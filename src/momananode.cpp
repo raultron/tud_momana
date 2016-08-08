@@ -414,8 +414,6 @@ void MomanaNode::square_navigation_test(double size_nav_square, double separatio
       goal.target_pose.header.stamp = ros::Time::now();
       goal.target_pose.pose = waypoints_robotB.poses[i];
       sendGoal_and_wait_r2d2(goal, ros::Duration(20));
-
-
     }
   }
 
