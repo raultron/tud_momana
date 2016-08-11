@@ -11,6 +11,9 @@ MomanaNode::MomanaNode()
   start_stop_momana_srv_ = nh_.advertiseService(
       "tud_momana/start_stop", &MomanaNode::start_stop_service_callback, this);
 
+  filter_enable_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/filter_enable");
+  filter_disable_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/filter_disable");
+
   set_c3po_static_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/set_c3po_static");
   set_r2d2_static_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/set_r2d2_static");
   switch_static_client_ = nh_.serviceClient<std_srvs::Empty>("tud_momana/switch_static_ref");
@@ -259,7 +262,19 @@ void MomanaNode::sendGoal_and_wait_c3po(const move_base_msgs::MoveBaseGoal& goal
   std_srvs::Empty::Request req,res;
   ros::Time start_time = ros::Time::now();
   bool OdometryAvailable = true;
+
+  //Before setting r2d2 static we enable filtering of the transform
+  //and sleep for 1.5 seconds so the filtering is based on static positions of both robots
+  //!TODO(racuna) ugly... find a better way right now it is based on my knowledge of the framerate
+  //! and the time that it takes to do the switching in momanaodom
+  filter_enable_client_.call(req, res);
+  ros::Duration(1.5).sleep();
+
   set_r2d2_static_client_.call(req, res);
+
+  ros::Duration(0.1).sleep();
+  filter_disable_client_.call(req, res);
+
   ac_c3po_move_base_.sendGoal(goal);
 
   while(nh_.ok()){
@@ -291,7 +306,18 @@ void MomanaNode::sendGoal_and_wait_r2d2(const move_base_msgs::MoveBaseGoal& goal
   std_srvs::Empty::Request req,res;
   ros::Time start_time = ros::Time::now();
   bool OdometryAvailable = true;
+  //Before setting r2d2 static we enable filtering of the transform
+  //and sleep for 1.5 seconds so the filtering is based on static positions of both robots
+  //!TODO(racuna) ugly... find a better way right now it is based on my knowledge of the framerate
+  //! and the time that it takes to do the switching in momanaodom
+  filter_enable_client_.call(req, res);
+  ros::Duration(1.5).sleep();
+
   set_c3po_static_client_.call(req, res);
+
+  ros::Duration(0.1).sleep();
+  filter_disable_client_.call(req, res);
+
   ac_r2d2_move_base_.sendGoal(goal);
 
   while(nh_.ok()){
@@ -354,7 +380,7 @@ void MomanaNode::square_navigation_test(double size_nav_square, double separatio
   //We define a set of displacements on x and y
   double dx[8]   = {0.5, 0.5,  0.0, 0.0, -0.5, -0.5, 0.0, 0.0};
   double dy[8]   = {0.0, 0.0, -0.5,-0.5,  0.0,  0.0, 0.5, 0.5};
-  double dyaw[8] = {0, angles::from_degrees(-90), 0, angles::from_degrees(180),  0,  angles::from_degrees(90), 0, 0};
+  double dyaw[8] = {0, angles::from_degrees(-90), 0, angles::from_degrees(180),  0,  angles::from_degrees(90), 0, angles::from_degrees(0.1)};
 
   for (int i=0; i<8; i++){
     //Two movements and one rotation
