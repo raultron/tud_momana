@@ -67,14 +67,15 @@ tf::StampedTransform MomanaOdomNode::get_c3po_to_r2d2(void){
   //! In the control part, before doing the static marker switch
   //! both robots need to be static for 1 second
 
+  //add relative transformation to the circular buffer
+  buffer_c3po_to_r2d2_.push_back(c3po_to_r2d2);
+
   if (filter_enabled_){
     tf::StampedTransform c3po_to_r2d2_filtered;
-    //add relative transformation to the circular buffer
-    buffer_c3po_to_r2d2_.push_back(c3po_to_r2d2);
     c3po_to_r2d2_filtered.setData(do_interpolation_tf_buffer());
     spin_end = ros::Time::now();
     ros::Duration spin_duration(spin_end-spin_begin);
-    ROS_INFO("Odom cycle duration: %f", spin_duration.toSec());
+    ROS_DEBUG("Odom cycle duration: %f", spin_duration.toSec());
     return c3po_to_r2d2_filtered;
   }else{
     return c3po_to_r2d2;

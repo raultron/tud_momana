@@ -401,10 +401,7 @@ void MomanaNode::square_navigation_test(double size_nav_square, double separatio
       waypoints_robotA.poses.push_back(pose_robotA);
       waypoints_robotB.poses.push_back(pose_robotB);
     }
-
   }
-
-
 
 
   // WE START MOVING
