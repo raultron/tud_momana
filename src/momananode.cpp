@@ -377,31 +377,59 @@ void MomanaNode::square_navigation_test(double size_nav_square, double separatio
   pose_robotB.position.y = pose_robotA.position.y - separation;
   pose_robotB.position.z = 0;
 
-  //We define a set of displacements on x and y
-  double dx[8]   = {0.5, 0.5,  0.0, 0.0, -0.5, -0.5, 0.0, 0.0};
-  double dy[8]   = {0.0, 0.0, -0.5,-0.5,  0.0,  0.0, 0.5, 0.5};
-  double dyaw[8] = {0, angles::from_degrees(-90), 0, angles::from_degrees(180),  0,  angles::from_degrees(90), 0, angles::from_degrees(0.1)};
+  //Lets define robotinoA and robotinoB positions
+  //RobotinoA = C3PO , RobotinoB = R2D2
+  double x_A[9] = {0.0,  0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,  0.0};
+  double y_A[9] = {0.0,  0.0,  0.0, -0.5, -1.0, -1.0, -1.0, -0.5,  0.0};
+  double z_A[9] = {0.0,  0.0,  0.0,  0.0,  179,  179,   90,   90,  0.0};
 
-  for (int i=0; i<8; i++){
-    //Two movements and one rotation
-    //First A and then B
-    pose_robotA.position.x += dx[i];
-    pose_robotA.position.y += dy[i];
 
-    pose_robotB.position.x += dx[i];
-    pose_robotB.position.y += dy[i];
+  double x_B[9] = { 0.0,   0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,   0.0};
+  double y_B[9] = {-0.6,  -0.6, -0.6, -1.1, -1.6, -1.6, -1.6, -1.1,  -0.6};
+  double z_B[9] = { 0.0,   0.0,  -90,  -90,  179,  179,   90,   90,   0.0};
 
+
+  for(int i=1; i < 9; i++){
+    pose_robotA.position.x = x_A[i];
+    pose_robotA.position.y = y_A[i];
+    pose_robotA.orientation = tf::createQuaternionMsgFromYaw(angles::from_degrees(z_A[i]));
     waypoints_robotA.poses.push_back(pose_robotA);
-    waypoints_robotB.poses.push_back(pose_robotB);
 
-    if(dyaw[i]){
-      // Rotate 90 degrees clockwise
-      pose_robotA.orientation = tf::createQuaternionMsgFromYaw(dyaw[i]); //-90°
-      pose_robotB.orientation = tf::createQuaternionMsgFromYaw(dyaw[i]); //-90°
-      waypoints_robotA.poses.push_back(pose_robotA);
-      waypoints_robotB.poses.push_back(pose_robotB);
-    }
+    pose_robotB.position.x = x_B[i];
+    pose_robotB.position.y = y_B[i];
+    pose_robotB.orientation = tf::createQuaternionMsgFromYaw(angles::from_degrees(z_B[i]));
+    waypoints_robotB.poses.push_back(pose_robotB);
   }
+
+
+
+
+//  //We define a set of displacements on x and y
+//  double dx[8]   = {0.5, 0.5,  0.0, 0.0, -0.5, -0.5, 0.0, 0.0};
+//  double dy[8]   = {0.0, 0.0, -0.5,-0.5,  0.0,  0.0, 0.5, 0.5};
+//  double dyaw[8] = {0, angles::from_degrees(-90), 0, angles::from_degrees(180),  0,  angles::from_degrees(90), 0, angles::from_degrees(0.1)};
+
+
+//  for (int i=0; i<8; i++){
+//    //Two movements and one rotation
+//    //First A and then B
+//    pose_robotA.position.x += dx[i];
+//    pose_robotA.position.y += dy[i];
+
+//    pose_robotB.position.x += dx[i];
+//    pose_robotB.position.y += dy[i];
+
+//    waypoints_robotA.poses.push_back(pose_robotA);
+//    waypoints_robotB.poses.push_back(pose_robotB);
+
+//    if(dyaw[i]){
+//      // Rotate 90 degrees clockwise
+//      pose_robotA.orientation = tf::createQuaternionMsgFromYaw(dyaw[i]); //-90°
+//      pose_robotB.orientation = tf::createQuaternionMsgFromYaw(dyaw[i]); //-90°
+//      waypoints_robotA.poses.push_back(pose_robotA);
+//      waypoints_robotB.poses.push_back(pose_robotB);
+//    }
+//  }
 
 
   // WE START MOVING
@@ -412,16 +440,16 @@ void MomanaNode::square_navigation_test(double size_nav_square, double separatio
 
   int n_waypoints = waypoints_robotA.poses.size();
   for (int i = 0; i<n_waypoints; i++){
-    if(i<=8){
+    if(i<=5){
       //Goal RobotB
       goal.target_pose.header.stamp = ros::Time::now();
       goal.target_pose.pose = waypoints_robotB.poses[i];
-      sendGoal_and_wait_r2d2(goal, ros::Duration(20));
+      sendGoal_and_wait_r2d2(goal, ros::Duration(40));
 
       //Goal RobotA
       goal.target_pose.header.stamp = ros::Time::now();
       goal.target_pose.pose = waypoints_robotA.poses[i];
-      sendGoal_and_wait_c3po(goal, ros::Duration(20));
+      sendGoal_and_wait_c3po(goal, ros::Duration(40));
     }else{
       //When robots are returning they have to change order
       // so they dont collide
@@ -431,12 +459,12 @@ void MomanaNode::square_navigation_test(double size_nav_square, double separatio
       //Goal RobotA
       goal.target_pose.header.stamp = ros::Time::now();
       goal.target_pose.pose = waypoints_robotA.poses[i];
-      sendGoal_and_wait_c3po(goal, ros::Duration(20));
+      sendGoal_and_wait_c3po(goal, ros::Duration(40));
 
       //Goal RobotB
       goal.target_pose.header.stamp = ros::Time::now();
       goal.target_pose.pose = waypoints_robotB.poses[i];
-      sendGoal_and_wait_r2d2(goal, ros::Duration(20));
+      sendGoal_and_wait_r2d2(goal, ros::Duration(40));
     }
   }
 
