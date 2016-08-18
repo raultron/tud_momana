@@ -19,6 +19,9 @@ MomanaOdomNode::MomanaOdomNode():
   odometry_pub_c3po_ = nh_.advertise<nav_msgs::Odometry>("/c3po/odom", 1, true);
   odometry_pub_r2d2_ = nh_.advertise<nav_msgs::Odometry>("/r2d2/odom", 1, true);
 
+  path_pub_c3po_ = nh_.advertise<nav_msgs::Path>("/c3po/path", 1, true);
+  path_pub_r2d2_ = nh_.advertise<nav_msgs::Path>("/r2d2/path", 1, true);
+
   nh_.param<std::string>("uav_base_link_", uav_base_link_,
                          "/ardrone_base_link");
   nh_.param<int>("camera_framerate", camera_framerate_, 25); // in hz
@@ -38,6 +41,11 @@ MomanaOdomNode::MomanaOdomNode():
 
   r2d2_odometry_msg_.header.frame_id = "rel_r2d2/odom";
   r2d2_odometry_msg_.child_frame_id = "rel_r2d2/base_link";
+
+  // Nav path frames_id
+  c3po_path_msg_.header.frame_id = "rel_c3po/odom";
+
+  r2d2_path_msg_.header.frame_id = "rel_r2d2/odom";
 }
 
 
@@ -193,6 +201,24 @@ void MomanaOdomNode::publish_odometry(void){
   odometry_pub_c3po_.publish(c3po_odometry_msg_);
   odometry_pub_r2d2_.publish(r2d2_odometry_msg_);
   sequence_++;
+
+  // Construct and publish nav path messages
+  geometry_msgs::PoseStamped r2d2_pose_stamped, c3po_pose_stamped;
+  r2d2_pose_stamped.header.frame_id = r2d2_odometry_msg_.header.frame_id;
+  r2d2_pose_stamped.header.stamp = r2d2_odometry_msg_.header.stamp;
+  r2d2_pose_stamped.header.seq = r2d2_odometry_msg_.header.seq;
+  r2d2_pose_stamped.pose = r2d2_pose;
+
+  c3po_pose_stamped.header.frame_id = c3po_odometry_msg_.header.frame_id;
+  c3po_pose_stamped.header.stamp = c3po_odometry_msg_.header.stamp;
+  c3po_pose_stamped.header.seq = c3po_odometry_msg_.header.seq;
+  c3po_pose_stamped.pose = c3po_pose;
+
+  c3po_path_msg_.poses.push_back(c3po_pose_stamped);
+  r2d2_path_msg_.poses.push_back(r2d2_pose_stamped);
+
+  path_pub_c3po_.publish(c3po_path_msg_);
+  path_pub_r2d2_.publish(r2d2_path_msg_);
 }
 
 

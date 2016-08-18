@@ -6,6 +6,7 @@
 #include "tf/transform_broadcaster.h"
 #include "tf/transform_listener.h"
 #include "nav_msgs/Odometry.h"
+#include "nav_msgs/Path.h"
 #include <std_srvs/Empty.h>
 #include <angles/angles.h>
 #include <boost/circular_buffer.hpp>
@@ -61,8 +62,14 @@ private:
     ros::ServiceServer filter_enable_srv_;
     ros::ServiceServer filter_disable_srv_;
 
+    //Odometry publishers
     ros::Publisher odometry_pub_c3po_;
     ros::Publisher odometry_pub_r2d2_;
+
+    //Navigation path publishers
+    ros::Publisher path_pub_c3po_;
+    ros::Publisher path_pub_r2d2_;
+
     tf::TransformBroadcaster tf_broadcaster_;
     tf::TransformListener tf_listener_;
 
@@ -75,6 +82,8 @@ private:
     tf::StampedTransform c3po_to_quad_;
 
     nav_msgs::Odometry c3po_odometry_msg_, r2d2_odometry_msg_;
+
+    nav_msgs::Path c3po_path_msg_, r2d2_path_msg_;
 
     int sequence_;
     bool c3po_static_;
