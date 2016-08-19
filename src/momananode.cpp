@@ -272,7 +272,7 @@ void MomanaNode::sendGoal_and_wait_c3po(const move_base_msgs::MoveBaseGoal& goal
 
   set_r2d2_static_client_.call(req, res);
 
-  ros::Duration(0.1).sleep();
+  ros::Duration(0.5).sleep();
   filter_disable_client_.call(req, res);
 
   ac_c3po_move_base_.sendGoal(goal);
@@ -284,7 +284,7 @@ void MomanaNode::sendGoal_and_wait_c3po(const move_base_msgs::MoveBaseGoal& goal
       ROS_INFO("C3PO Action finished: %s", state.toString().c_str());
       break;
     } else {
-      ROS_INFO("C3PO Action did not finish before the time out.");
+      ROS_DEBUG("C3PO Action did not finish before the time out.");
     }
     if( ( ros::Time::now() - start_time ) > duration )
     {
@@ -315,7 +315,7 @@ void MomanaNode::sendGoal_and_wait_r2d2(const move_base_msgs::MoveBaseGoal& goal
 
   set_c3po_static_client_.call(req, res);
 
-  ros::Duration(0.1).sleep();
+  ros::Duration(0.5).sleep();
   filter_disable_client_.call(req, res);
 
   ac_r2d2_move_base_.sendGoal(goal);
@@ -327,7 +327,7 @@ void MomanaNode::sendGoal_and_wait_r2d2(const move_base_msgs::MoveBaseGoal& goal
       ROS_INFO("R2D2 Action finished: %s", state.toString().c_str());
       break;
     } else {
-      ROS_INFO("R2D2 Action did not finish before the time out.");
+      ROS_DEBUG("R2D2 Action did not finish before the time out.");
     }
     if( ( ros::Time::now() - start_time ) > duration )
     {
@@ -377,16 +377,30 @@ void MomanaNode::square_navigation_test(double size_nav_square, double separatio
   pose_robotB.position.y = pose_robotA.position.y - separation;
   pose_robotB.position.z = 0;
 
+  // TEst with VISO2
+  // We rotate the robots so the stereo_odometer doesnt get lost
+  //Lets define robotinoA and robotinoB positions
+  //RobotinoA = C3PO , RobotinoB = R2D2
+//  double x_A[9] = {0.0,  0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,  0.0};
+//  double y_A[9] = {0.0,  0.0,  0.0, -0.5, -1.0, -1.0, -1.0, -0.5,  0.0};
+//  double z_A[9] = {0.0,  0.0,  0.0,  0.0,  160,  180,   90,   90,  0.0};
+
+
+//  double x_B[9] = { 0.0,   0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,   0.0};
+//  double y_B[9] = {-0.6,  -0.6, -0.6, -1.1, -1.6, -1.6, -1.6, -1.1,  -0.6};
+//  double z_B[9] = { 0.0,   0.0,  -90,  -90,  179,  179,   90,   90,   0.0};
+
+  // Momana test without optimizations for VISO2
   //Lets define robotinoA and robotinoB positions
   //RobotinoA = C3PO , RobotinoB = R2D2
   double x_A[9] = {0.0,  0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,  0.0};
   double y_A[9] = {0.0,  0.0,  0.0, -0.5, -1.0, -1.0, -1.0, -0.5,  0.0};
-  double z_A[9] = {0.0,  0.0,  0.0,  0.0,  179,  179,   90,   90,  0.0};
+  double z_A[9] = {0.0,  0.0,  -90,  -90,  180,  180,   90,   90,  0.0};
 
 
   double x_B[9] = { 0.0,   0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,   0.0};
   double y_B[9] = {-0.6,  -0.6, -0.6, -1.1, -1.6, -1.6, -1.6, -1.1,  -0.6};
-  double z_B[9] = { 0.0,   0.0,  -90,  -90,  179,  179,   90,   90,   0.0};
+  double z_B[9] = { 0.0,   0.0,  -90,  -90,  180,  180,   90,   90,   0.0};
 
 
   for(int i=1; i < 9; i++){
@@ -444,11 +458,13 @@ void MomanaNode::square_navigation_test(double size_nav_square, double separatio
       //Goal RobotB
       goal.target_pose.header.stamp = ros::Time::now();
       goal.target_pose.pose = waypoints_robotB.poses[i];
+      ROS_INFO("r2d2 goal: %f, %f", goal.target_pose.pose.position.x, goal.target_pose.pose.position.y);
       sendGoal_and_wait_r2d2(goal, ros::Duration(40));
 
       //Goal RobotA
       goal.target_pose.header.stamp = ros::Time::now();
       goal.target_pose.pose = waypoints_robotA.poses[i];
+      ROS_INFO("c3po goal: %f, %f", goal.target_pose.pose.position.x, goal.target_pose.pose.position.y);
       sendGoal_and_wait_c3po(goal, ros::Duration(40));
     }else{
       //When robots are returning they have to change order
@@ -459,11 +475,13 @@ void MomanaNode::square_navigation_test(double size_nav_square, double separatio
       //Goal RobotA
       goal.target_pose.header.stamp = ros::Time::now();
       goal.target_pose.pose = waypoints_robotA.poses[i];
+      ROS_INFO("c3po goal: %f, %f", goal.target_pose.pose.position.x, goal.target_pose.pose.position.y);
       sendGoal_and_wait_c3po(goal, ros::Duration(40));
 
       //Goal RobotB
       goal.target_pose.header.stamp = ros::Time::now();
       goal.target_pose.pose = waypoints_robotB.poses[i];
+      ROS_INFO("r2d2 goal: %f, %f", goal.target_pose.pose.position.x, goal.target_pose.pose.position.y);
       sendGoal_and_wait_r2d2(goal, ros::Duration(40));
     }
   }
