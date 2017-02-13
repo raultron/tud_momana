@@ -27,12 +27,13 @@
 	    <param name="image_height" value="576" />
 	    <param name="camera_frame_id" value="cam" />
 	    <param name="camera_name" value= "cam"/>
-      <!--param name="camera_info_url" value= "file:///localhome/racuna/.ros/camera_info/cam.yaml"/-->
+      <param name="camera_info_url" value= "file:///localhome/racuna/.ros/camera_info/ardrone_ext_cam.yaml"/>
 	  </node>
 
 
     <node ns="/prep" pkg="tud_img_prep" type="img_prep" name="img_prep" output="screen">
       <param name="camera_namespace" value="/cam" />
+			<!--param name="camera_namespace" value="/ardrone/bottom" /-->
       <param name="image" value="image_raw" />
 	  </node>
 

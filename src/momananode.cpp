@@ -381,26 +381,26 @@ void MomanaNode::square_navigation_test(double size_nav_square, double separatio
   // We rotate the robots so the stereo_odometer doesnt get lost
   //Lets define robotinoA and robotinoB positions
   //RobotinoA = C3PO , RobotinoB = R2D2
-//  double x_A[9] = {0.0,  0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,  0.0};
-//  double y_A[9] = {0.0,  0.0,  0.0, -0.5, -1.0, -1.0, -1.0, -0.5,  0.0};
-//  double z_A[9] = {0.0,  0.0,  0.0,  0.0,  160,  180,   90,   90,  0.0};
-
-
-//  double x_B[9] = { 0.0,   0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,   0.0};
-//  double y_B[9] = {-0.6,  -0.6, -0.6, -1.1, -1.6, -1.6, -1.6, -1.1,  -0.6};
-//  double z_B[9] = { 0.0,   0.0,  -90,  -90,  179,  179,   90,   90,   0.0};
-
-  // Momana test without optimizations for VISO2
-  //Lets define robotinoA and robotinoB positions
-  //RobotinoA = C3PO , RobotinoB = R2D2
   double x_A[9] = {0.0,  0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,  0.0};
   double y_A[9] = {0.0,  0.0,  0.0, -0.5, -1.0, -1.0, -1.0, -0.5,  0.0};
-  double z_A[9] = {0.0,  0.0,  -90,  -90,  180,  180,   90,   90,  0.0};
+  double z_A[9] = {0.0,  0.0,  0.0,  0.0,  160,  180,   90,   90,  0.0};
 
 
   double x_B[9] = { 0.0,   0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,   0.0};
   double y_B[9] = {-0.6,  -0.6, -0.6, -1.1, -1.6, -1.6, -1.6, -1.1,  -0.6};
-  double z_B[9] = { 0.0,   0.0,  -90,  -90,  180,  180,   90,   90,   0.0};
+  double z_B[9] = { 0.0,   0.0,  -90,  -90,  179,  179,   90,   90,   0.0};
+
+  // Momana test without optimizations for VISO2
+  //Lets define robotinoA and robotinoB positions
+  //RobotinoA = C3PO , RobotinoB = R2D2
+//  double x_A[9] = {0.0,  0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,  0.0};
+//  double y_A[9] = {0.0,  0.0,  0.0, -0.5, -1.0, -1.0, -1.0, -0.5,  0.0};
+//  double z_A[9] = {0.0,  0.0,  -90,  -90,  180,  180,   90,   90,  0.0};
+
+
+//  double x_B[9] = { 0.0,   0.5,  1.0,  1.0,  1.0,  0.5,  0.0,  0.0,   0.0};
+//  double y_B[9] = {-0.6,  -0.6, -0.6, -1.1, -1.6, -1.6, -1.6, -1.1,  -0.6};
+//  double z_B[9] = { 0.0,   0.0,  -90,  -90,  180,  180,   90,   90,   0.0};
 
 
   for(int i=1; i < 9; i++){
