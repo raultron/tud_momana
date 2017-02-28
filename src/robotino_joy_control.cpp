@@ -50,43 +50,45 @@ void joyCallback(const sensor_msgs::Joy& in) {
   buttonControlr2d2 = bool(in.buttons[5]);
   buttonMomanaOdom = bool(in.buttons[7]);
 
-  ros::Duration elapsed = (ros::Time::now() - buttons_pressed_instant);
-  if ((buttonSwitchRobot || buttonControlc3po || buttonControlr2d2 || buttonMomanaOdom)&&(elapsed > delay_button) ){
-    buttons_pressed_instant = ros::Time::now();
-    if (buttonSwitchRobot) {
-        std_srvs::Empty::Request req,res;
-        c3po_active = !c3po_active;
-        r2d2_active = !r2d2_active;
-        momana_switch_static_client.call(req, res);
-        if(c3po_active){
-          ROS_INFO("r2d2 active");
-        } else {
-          ROS_INFO("c3po active");
-        }
+  if ((buttonSwitchRobot || buttonControlc3po || buttonControlr2d2 || buttonMomanaOdom)){
+    ros::Duration elapsed = (ros::Time::now() - buttons_pressed_instant);
+    if(elapsed > delay_button){
+      buttons_pressed_instant = ros::Time::now();
+      if (buttonSwitchRobot) {
+          std_srvs::Empty::Request req,res;
+          c3po_active = !c3po_active;
+          r2d2_active = !r2d2_active;
+          momana_switch_static_client.call(req, res);
+          if(c3po_active){
+            ROS_INFO("r2d2 active");
+          } else {
+            ROS_INFO("c3po active");
+          }
 
-    } else if (buttonControlc3po){
-      c3po_active = true;
-      r2d2_active = false;
-      std_srvs::Empty::Request req,res;
-      momana_set_c3po_static_client.call(req, res);
-      ROS_INFO("c3po active");
-    } else if (buttonControlr2d2){
-      r2d2_active = true;
-      c3po_active = false;
-      std_srvs::Empty::Request req,res;
-      momana_set_r2d2_static_client.call(req, res);
-      ROS_INFO("r2d2 active");
-    } else if (buttonMomanaOdom){
-      // Start Odom messages publishing
-      // This sets c3po as static
-      r2d2_active = true;
-      c3po_active = false;
-      std_srvs::Empty::Request req,res;
-      ROS_INFO("Sending command to start momana odometry");
-      momana_start_odom_client.call(req, res);
+      } else if (buttonControlc3po){
+        c3po_active = true;
+        r2d2_active = false;
+        std_srvs::Empty::Request req,res;
+        momana_set_c3po_static_client.call(req, res);
+        ROS_INFO("c3po active");
+      } else if (buttonControlr2d2){
+        r2d2_active = true;
+        c3po_active = false;
+        std_srvs::Empty::Request req,res;
+        momana_set_r2d2_static_client.call(req, res);
+        ROS_INFO("r2d2 active");
+      } else if (buttonMomanaOdom){
+        // Start Odom messages publishing
+        // This sets c3po as static
+        r2d2_active = true;
+        c3po_active = false;
+        std_srvs::Empty::Request req,res;
+        ROS_INFO("Sending command to start momana odometry");
+        momana_start_odom_client.call(req, res);
+      }
+    }else {
+      ROS_INFO("Waiting delay)");
     }
-  }else {
-    ROS_INFO("Waiting delay)");
   }
 
 
@@ -119,7 +121,7 @@ int main(int argc, char* argv[]) {
   c3po_cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("/c3po/cmd_vel", 1);
   r2d2_cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("/r2d2/cmd_vel", 1);
 
-  ros::Rate rate(1);  // 10 hz
+  ros::Rate rate(10);  // 10 hz
 
   while (nh.ok()) {
     ros::spinOnce();
