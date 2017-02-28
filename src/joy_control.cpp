@@ -23,8 +23,8 @@ bool buttonEnable = false;
 bool buttonControlJoy = false;
 bool buttonControlTracking = false;
 bool buttonControlJoint = false;
-bool buttonStartStopMomana = false;
-bool momana_started = false;
+bool buttonMomanaOdom = false;
+bool momanaOdom_started = false;
 
 
 std_msgs::Empty empty;
@@ -65,7 +65,7 @@ void joyCallback(const sensor_msgs::Joy& in) {
   buttonControlJoy = bool(in.buttons[3]);
   buttonControlTracking = bool(in.buttons[4]);
   buttonControlJoint = bool(in.buttons[5]);
-  buttonStartStopMomana = double(in.buttons[8]);
+  buttonMomanaOdom = double(in.buttons[8]);
 
 
   if (buttonControlJoy || buttonControlTracking || buttonControlJoint) {
@@ -117,10 +117,10 @@ void joyCallback(const sensor_msgs::Joy& in) {
     out_twist.angular.y = 0.0;
   }
 
-  if (buttonStartStopMomana) {
+  if (buttonMomanaOdom) {
     if ((ros::Time::now() - buttonStart_pressed_instant) > delay_button) {
       buttonStart_pressed_instant = ros::Time::now();
-      if(momana_started){
+      if(momanaOdom_started){
         //We want to stop
         srv_StartStopMomana.request.start = false;
         srv_StartStopMomana.request.stop = true;
@@ -134,10 +134,10 @@ void joyCallback(const sensor_msgs::Joy& in) {
       if (start_stop_momana_client.call(srv_StartStopMomana)) {
         if (srv_StartStopMomana.response.state) {
           ROS_INFO("Momana Started");
-          momana_started = true;
+          momanaOdom_started = true;
         } else {
           ROS_INFO("Momana Stopped");
-          momana_started = false;
+          momanaOdom_started = false;
         }
       } else {
         ROS_ERROR("Failed to call service /tud_momana/start_stop");

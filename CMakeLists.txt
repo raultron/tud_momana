@@ -162,6 +162,7 @@ set(MOMANAODOM_HEADER_FILES
 add_executable(momana ${MOMANA_SOURCE_FILES} ${MOMANA_HEADER_FILES})
 add_executable(momana_odom ${MOMANAODOM_SOURCE_FILES} ${MOMANAODOM_HEADER_FILES})
 add_executable(joy_control_momana src/joy_control.cpp)
+add_executable(robotino_joy_control src/robotino_joy_control.cpp)
 #add_executable(pid_control ${PIDCONTROL_SOURCE_FILES} ${PIDCONTROL_HEADER_FILES})
 #add_executable(test_controller src/test_controller.cpp)
 #add_executable(mainQt src/mainQt.cpp)
@@ -186,6 +187,10 @@ add_dependencies(
   tud_coop_uv_generate_messages_cpp
   tud_momana_generate_messages_cpp
   ardrone_autonomy_generate_messages_cpp)
+
+add_dependencies(
+  robotino_joy_control
+  tud_momana_generate_messages_cpp)
 #add_dependencies(pid_control ardrone_autonomy)
 #add_dependencies(test_controller ardrone_autonomy)
 
@@ -195,6 +200,7 @@ add_dependencies(
 target_link_libraries(momana ${catkin_LIBRARIES})
 target_link_libraries(momana_odom ${catkin_LIBRARIES})
 target_link_libraries(joy_control_momana ${catkin_LIBRARIES})
+target_link_libraries(robotino_joy_control ${catkin_LIBRARIES})
 #target_link_libraries(pid_control ${catkin_LIBRARIES})
 #target_link_libraries(test_controller ${catkin_LIBRARIES})
 
@@ -255,3 +261,4 @@ target_link_libraries(joy_control_momana ${catkin_LIBRARIES})
 file(GLOB_RECURSE QT_MOC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS include/tud_momana/*.hpp)
 FILE(GLOB_RECURSE INC_ALL "include/tud_momana/*.hpp")
 FILE(GLOB_RECURSE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*.cpp)
+
