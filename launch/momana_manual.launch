@@ -15,6 +15,20 @@
 
   <node pkg="tud_momana" name="momana_odom" type="momana_odom" output="screen"/>
 
+  <!-- static transforms needed for our relative odometry frames -->
+  <!-- map to odom -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="odom_tf" args="0 0 0 0 0 0 1 map odom" />
+
+  <!-- odom to rel_odom -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="rel_odom_tf" args="0 0 0 0 0 0 1 odom rel_odom" />
+
+  <!-- rel_odom to rel_c3po/odom-->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="rel_c3po_odom_tf" args="0 0 0 0 0 0 1 rel_odom rel_c3po/odom" />
+
+  <!-- rel_odom to rel_r2d2/odom-->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="rel_r2d2_odom_tf" args="0 0 0 0 0 0 1 rel_odom rel_r2d2/odom" />
+
+
   <node pkg="tf2_ros" type="static_transform_publisher" name="c3po_base_link_tf" args="0 0 0 0 0 0 1 c3po_marker_top c3po_base_link" />
 
   <node pkg="tf2_ros" type="static_transform_publisher" name="r2d2_base_link_tf" args="0 0 0 0 0 0 1 r2d2_marker_top r2d2_base_link" />

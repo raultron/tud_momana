@@ -118,6 +118,10 @@ void MomanaOdomNode::wait_for_transforms(void){
     try {
       transform_available = tf_listener_.waitForTransform("c3po_base_link", "r2d2_base_link", now,
                                     ros::Duration(5));
+      if (transform_available){
+        ROS_INFO("MomanaOdom: found a valid transform between r2d2 and c3po");
+      }
+
     } catch (tf::TransformException& ex) {
       ROS_ERROR("%s", ex.what());
       // if we dont have a valid transformation return false
@@ -129,7 +133,7 @@ void MomanaOdomNode::set_r2d2_static(void){
   //! TODO(racuna)
   //!Average one second of measurements to improve pose
   //ros::Duration(2.0).sleep();
-
+  ROS_INFO("MomanaOdom: r2d2 configured as static");
   c3po_static_ = false;
   r2d2_static_ = true;
 }
@@ -139,7 +143,7 @@ void MomanaOdomNode::set_c3po_static(void){
   //!Average one second of measurements to improve pose
   //! Implement this in the control!!!!
   //ros::Duration(2.0).sleep();
-
+  ROS_INFO("MomanaOdom: c3po configured as static");
   c3po_static_ = true;
   r2d2_static_ = false;
 }

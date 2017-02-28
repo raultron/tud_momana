@@ -43,7 +43,7 @@
 
 	</group>
 
-	<node ns="/" pkg="ar_sys" type="multi_boards" name="ar_multi_boards$(arg uid)" output="screen">
+  <node ns="/" pkg="ar_sys" type="multi_boards" name="ar_multi_boards$(arg uid)"">
 		<remap from="/camera_info" to="$(arg video_namespace)/$(arg video_info_topic)" />
 		<remap from="/image" to="$(arg video_namespace)/$(arg video_image_topic)" />
     <param name="publish_tf" type="bool" value="true"/>
