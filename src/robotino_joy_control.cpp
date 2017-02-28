@@ -69,13 +69,13 @@ void joyCallback(const sensor_msgs::Joy& in) {
         c3po_active = true;
         r2d2_active = false;
         std_srvs::Empty::Request req,res;
-        momana_set_c3po_static_client.call(req, res);
+        momana_set_r2d2_static_client.call(req, res);
         ROS_INFO("c3po active");
       } else if (buttonControlr2d2){
         r2d2_active = true;
         c3po_active = false;
         std_srvs::Empty::Request req,res;
-        momana_set_r2d2_static_client.call(req, res);
+        momana_set_c3po_static_client.call(req, res);
         ROS_INFO("r2d2 active");
       } else if (buttonMomanaOdom){
         // Start Odom messages publishing
