@@ -50,9 +50,9 @@ void joyCallback(const sensor_msgs::Joy& in) {
 
 
   buttonSwitchRobot = bool(in.buttons[0]);
-  buttonControlc3po = bool(in.buttons[6]);
-  buttonControlr2d2 = bool(in.buttons[7]);
-  buttonMomanaOdom = bool(in.buttons[8]);
+  buttonControlc3po = bool(in.buttons[9]);
+  buttonControlr2d2 = bool(in.buttons[10]);
+  buttonMomanaOdom = bool(in.buttons[7]);
 
 
   if (buttonSwitchRobot) {
@@ -62,8 +62,11 @@ void joyCallback(const sensor_msgs::Joy& in) {
       c3po_active = !c3po_active;
       r2d2_active = !r2d2_active;
       momana_switch_static_client.call(req, res);
-
-      ROS_INFO("Switched Robots");
+      if(c3po_active){
+        ROS_INFO("r2d2 active");
+      } else {
+        ROS_INFO("c3po active");
+      }
     } else {
       ROS_INFO("Waiting delay)");
     }
@@ -120,7 +123,7 @@ int main(int argc, char* argv[]) {
   c3po_cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("/c3po/cmd_vel", 1);
   r2d2_cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("/r2d2/cmd_vel", 1);
 
-  ros::Rate rate(10);  // 10 hz
+  ros::Rate rate(1);  // 10 hz
 
   while (nh.ok()) {
     ros::spinOnce();

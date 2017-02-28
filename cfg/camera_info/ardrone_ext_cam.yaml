@@ -1,0 +1,20 @@
+image_width: 720
+image_height: 576
+camera_name: ardrone_ext_cam
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [492.856172, 0.000000, 338.263513, 0.000000, 526.006429, 257.626108, 0.000000, 0.000000, 1.000000]
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [-0.419143, 0.152472, 0.000282, -0.001497, 0.000000]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 1.000000]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [368.167328, 0.000000, 330.139251, 0.000000, 0.000000, 443.671722, 245.706108, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000]
