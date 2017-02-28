@@ -15,6 +15,8 @@ double height = 2;
 double velx = 0;
 double vely = 0;
 double angz = 0;
+double scale_linear = 0.1;
+double scale_angular = 0.2;
 
 bool buttonControlc3po = false;
 bool buttonControlr2d2 = false;
@@ -92,8 +94,8 @@ void joyCallback(const sensor_msgs::Joy& in) {
   }
 
 
-  out_twist.linear.x = velx;
-  out_twist.linear.y = vely;
+  out_twist.linear.x = velx*scale_linear;
+  out_twist.linear.y = vely*scale_angular;
   out_twist.angular.z = angz;
 
   if(c3po_active){
@@ -106,6 +108,9 @@ void joyCallback(const sensor_msgs::Joy& in) {
 int main(int argc, char* argv[]) {
   ros::init(argc, argv, "joy_control");  // Name of the node
   ros::NodeHandle nh;
+
+  nh.param<double>("scale_linear", scale_linear, 0.1);
+  nh.param<double>("scale_angular", scale_angular, 0.2);
 
   buttons_pressed_instant = ros::Time::now();
 
