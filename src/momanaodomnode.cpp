@@ -1,7 +1,8 @@
 #include "tud_momana/momanaodomnode.hpp"
 
 MomanaOdomNode::MomanaOdomNode():
-  sequence_(0),
+  seq_odometry_(0),
+  seq_odometry_at_switch_(0),
   distance_exp_average(0),
   filter_enabled_(false)
 {
@@ -18,6 +19,11 @@ MomanaOdomNode::MomanaOdomNode():
 
   odometry_pub_c3po_ = nh_.advertise<nav_msgs::Odometry>("/c3po/odom", 1, true);
   odometry_pub_r2d2_ = nh_.advertise<nav_msgs::Odometry>("/r2d2/odom", 1, true);
+
+  odometry_at_switch_c3po_pub_ = nh_.advertise<nav_msgs::Odometry>("/c3po/odom_at_switch", 1, true);
+  odometry_at_switch_r2d2_pub_ = nh_.advertise<nav_msgs::Odometry>("/r2d2/odom_at_switch", 1, true);
+
+
 
   path_pub_c3po_ = nh_.advertise<nav_msgs::Path>("/c3po/path", 1, true);
   path_pub_r2d2_ = nh_.advertise<nav_msgs::Path>("/r2d2/path", 1, true);
@@ -94,7 +100,7 @@ void MomanaOdomNode::init_odom(void){
   ///wait until all required transformations are available
   wait_for_transforms();
 
-  sequence_ = 0;
+  seq_odometry_ = 0;
   // set odom frame as current C3PO position
   odom_to_c3po_rel_.setIdentity();
 
@@ -136,6 +142,8 @@ void MomanaOdomNode::set_r2d2_static(void){
   ROS_INFO("MomanaOdom: r2d2 configured as static");
   c3po_static_ = false;
   r2d2_static_ = true;
+  r2d2_static_calc();
+  publish_odometry_at_switch();
 }
 
 void MomanaOdomNode::set_c3po_static(void){
@@ -146,6 +154,8 @@ void MomanaOdomNode::set_c3po_static(void){
   ROS_INFO("MomanaOdom: c3po configured as static");
   c3po_static_ = true;
   r2d2_static_ = false;
+  c3po_static_calc();
+  publish_odometry_at_switch();
 }
 
 void MomanaOdomNode::c3po_static_calc(void){
@@ -181,6 +191,34 @@ void MomanaOdomNode::publish_transforms(void){
   //tf_broadcaster_.sendTransform(odom_to_quad_rel_);
 }
 
+void MomanaOdomNode::publish_odometry_at_switch(void){
+  nav_msgs::Odometry c3po_odom_at_switch_msg, r2d2_odom_at_switch_msg;
+  geometry_msgs::Pose c3po_pose, r2d2_pose;
+
+  tf::poseTFToMsg(odom_to_c3po_rel_, c3po_pose);
+  tf::poseTFToMsg(odom_to_r2d2_rel_, r2d2_pose);
+
+  c3po_odom_at_switch_msg = c3po_odometry_msg_;
+  r2d2_odom_at_switch_msg = r2d2_odometry_msg_;
+
+  // Construct c3po odometry at switch message
+  c3po_odom_at_switch_msg.header.seq = seq_odometry_at_switch_;
+  c3po_odom_at_switch_msg.header.stamp = odom_to_c3po_rel_.stamp_;
+  c3po_odom_at_switch_msg.pose.pose = c3po_pose;
+
+  // Construct r2d2 odometry message
+  r2d2_odom_at_switch_msg.header.seq = seq_odometry_at_switch_;
+  r2d2_odom_at_switch_msg.header.stamp = odom_to_r2d2_rel_.stamp_;
+  r2d2_odom_at_switch_msg.pose.pose = r2d2_pose;
+  // dont need to set up twist in the navigation message (yet..)
+
+  //Publisht the odometry messages
+  odometry_at_switch_c3po_pub_.publish(c3po_odom_at_switch_msg);
+  odometry_at_switch_r2d2_pub_.publish(r2d2_odom_at_switch_msg);
+  seq_odometry_at_switch_++;
+
+}
+
 void MomanaOdomNode::publish_odometry(void){
   geometry_msgs::Pose c3po_pose, r2d2_pose;
 
@@ -190,13 +228,13 @@ void MomanaOdomNode::publish_odometry(void){
   ROS_DEBUG("C3PO odom x: %f", c3po_pose.position.x);
 
   // Construct c3po odometry message
-  c3po_odometry_msg_.header.seq = sequence_;
+  c3po_odometry_msg_.header.seq = seq_odometry_;
   c3po_odometry_msg_.header.stamp = odom_to_c3po_rel_.stamp_;
   c3po_odometry_msg_.pose.pose = c3po_pose;
   // dont need to set up twist in the navigation message (yet..)
 
   // Construct r2d2 odometry message
-  r2d2_odometry_msg_.header.seq = sequence_;
+  r2d2_odometry_msg_.header.seq = seq_odometry_;
   r2d2_odometry_msg_.header.stamp = odom_to_r2d2_rel_.stamp_;
   r2d2_odometry_msg_.pose.pose = r2d2_pose;
   // dont need to set up twist in the navigation message (yet..)
@@ -204,7 +242,7 @@ void MomanaOdomNode::publish_odometry(void){
   //Publisht the odometry messages
   odometry_pub_c3po_.publish(c3po_odometry_msg_);
   odometry_pub_r2d2_.publish(r2d2_odometry_msg_);
-  sequence_++;
+  seq_odometry_++;
 
   // Construct and publish nav path messages
   geometry_msgs::PoseStamped r2d2_pose_stamped, c3po_pose_stamped;

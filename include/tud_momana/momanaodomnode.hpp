@@ -43,6 +43,7 @@ public:
 
     void init_odom();
     void publish_transforms(void);
+    void publish_odometry_at_switch(void);
     void publish_odometry(void);
     void c3po_static_calc(void);
     void r2d2_static_calc(void);
@@ -66,6 +67,9 @@ private:
     ros::Publisher odometry_pub_c3po_;
     ros::Publisher odometry_pub_r2d2_;
 
+    ros::Publisher odometry_at_switch_c3po_pub_;
+    ros::Publisher odometry_at_switch_r2d2_pub_;
+
     //Navigation path publishers
     ros::Publisher path_pub_c3po_;
     ros::Publisher path_pub_r2d2_;
@@ -85,7 +89,8 @@ private:
 
     nav_msgs::Path c3po_path_msg_, r2d2_path_msg_;
 
-    int sequence_;
+    int seq_odometry_;
+    int seq_odometry_at_switch_;
     bool c3po_static_;
     bool r2d2_static_;
     bool odom_initialized_;
