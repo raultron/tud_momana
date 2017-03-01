@@ -6,6 +6,7 @@ MomanaOdomNode::MomanaOdomNode():
   distance_exp_average(0),
   filter_enabled_(false)
 {
+  odom_initialized_ = false;
   //start_odom_srv_ =
   //    nh_.advertiseService("tud_momana/start_odom",
   //                         &MomanaOdomNode::start_odom_service_callback, this);
@@ -142,8 +143,10 @@ void MomanaOdomNode::set_r2d2_static(void){
   ROS_INFO("MomanaOdom: r2d2 configured as static");
   c3po_static_ = false;
   r2d2_static_ = true;
-  r2d2_static_calc();
-  publish_odometry_at_switch();
+  if(odom_initialized_){
+    r2d2_static_calc();
+    publish_odometry_at_switch();
+  }
 }
 
 void MomanaOdomNode::set_c3po_static(void){
@@ -154,8 +157,10 @@ void MomanaOdomNode::set_c3po_static(void){
   ROS_INFO("MomanaOdom: c3po configured as static");
   c3po_static_ = true;
   r2d2_static_ = false;
-  c3po_static_calc();
-  publish_odometry_at_switch();
+  if(odom_initialized_){
+    c3po_static_calc();
+    publish_odometry_at_switch();
+  }
 }
 
 void MomanaOdomNode::c3po_static_calc(void){
