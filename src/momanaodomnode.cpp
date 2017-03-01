@@ -140,7 +140,7 @@ void MomanaOdomNode::set_r2d2_static(void){
   //! TODO(racuna)
   //!Average one second of measurements to improve pose
   //ros::Duration(2.0).sleep();
-  ROS_INFO("MomanaOdom: r2d2 configured as static");
+  ROS_INFO("MomanaOdom: c3po active and r2d2 static");
   c3po_static_ = false;
   r2d2_static_ = true;
   if(odom_initialized_){
@@ -154,7 +154,7 @@ void MomanaOdomNode::set_c3po_static(void){
   //!Average one second of measurements to improve pose
   //! Implement this in the control!!!!
   //ros::Duration(2.0).sleep();
-  ROS_INFO("MomanaOdom: c3po configured as static");
+  ROS_INFO("MomanaOdom: r2d2 active and c3po static");
   c3po_static_ = true;
   r2d2_static_ = false;
   if(odom_initialized_){
