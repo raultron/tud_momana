@@ -17,6 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
     actionlib_msgs
     actionlib
     tf
+    tud_coop_uv
+    robotino_local_move
 )
 
 find_package(Boost REQUIRED COMPONENTS thread)
@@ -171,8 +173,7 @@ add_executable(robotino_joy_control src/robotino_joy_control.cpp)
 ## as an example, message headers may need to be generated before nodes
 ##add_dependencies(coop_uv_node coop_uv_generate_messages_cpp)
 add_dependencies(momana
-  ardrone_autonomy
-  tud_coop_uv
+  tud_coop_uv_generate_messages_cpp
   tud_momana_generate_messages_cpp
   robotino_local_move_generate_messages_cpp
   ${robotino_local_move_EXPORTED_TARGETS})
@@ -183,10 +184,9 @@ add_dependencies(
 
 add_dependencies(
   joy_control_momana
-  tud_coop_uv
   tud_coop_uv_generate_messages_cpp
   tud_momana_generate_messages_cpp
-  ardrone_autonomy_generate_messages_cpp)
+  )
 
 add_dependencies(
   robotino_joy_control
