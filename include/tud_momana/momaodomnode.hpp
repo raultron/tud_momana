@@ -69,6 +69,9 @@ public:
     tf::StampedTransform do_interpolation_tf_buffer(void);
     tf::StampedTransform get_cam_to_marker(void);
 
+    tf::StampedTransform get_cam_gt(void);
+    tf::StampedTransform get_marker_gt(void);
+
 private:
     ros::ServiceServer start_odom_srv_;
     ros::ServiceServer set_cam_static_srv_;
@@ -80,6 +83,9 @@ private:
     //Odometry publishers
     ros::Publisher odometry_pub_cam_;
     ros::Publisher odometry_pub_marker_;
+
+    ros::Publisher odometry_pub_cam_gt_;
+    ros::Publisher odometry_pub_marker_gt_;
 
     ros::Publisher odometry_at_switch_cam_pub_;
     ros::Publisher odometry_at_switch_marker_pub_;
@@ -96,20 +102,24 @@ private:
 
     tf::StampedTransform odom_to_cam_rel_;
     tf::StampedTransform odom_to_marker_rel_;
-    tf::StampedTransform odom_to_quad_rel_;
     tf::StampedTransform cam_to_marker_;
-    tf::StampedTransform cam_to_quad_;
+    tf::StampedTransform world_to_cam_gt_;
+    tf::StampedTransform world_to_marker_gt_;
+
+
 
     nav_msgs::Odometry cam_odometry_msg_, marker_odometry_msg_;
 
     nav_msgs::Path cam_path_msg_, marker_path_msg_;
 
+    int camera_framerate_;
     int seq_odometry_;
     int seq_odometry_at_switch_;
     bool cam_static_;
     bool marker_static_;
     bool odom_initialized_;
-    int camera_framerate_;
+    bool gt_available_; // If we have ground truth publish this as well
+
 
     double distance_exp_average;
 

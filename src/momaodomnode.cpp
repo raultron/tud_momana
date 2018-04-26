@@ -7,6 +7,9 @@ MomaOdomNode::MomaOdomNode():
   filter_enabled_(false)
 {
   odom_initialized_ = false;
+  nh_.param<bool>("publish_gt", gt_available_, false);
+
+
   filter_enable_srv_ = nh_.advertiseService("tud_momana/filter_enable", &MomaOdomNode::filter_enable_service_callback, this);
   filter_disable_srv_ = nh_.advertiseService("tud_momana/filter_disable", &MomaOdomNode::filter_disable_service_callback, this);
   set_cam_static_srv_ = nh_.advertiseService("tud_momana/set_cam_static", &MomaOdomNode::set_cam_static_service_callback, this);
@@ -14,11 +17,17 @@ MomaOdomNode::MomaOdomNode():
   switch_static_ref_srv_ = nh_.advertiseService("tud_momana/switch_static_ref", &MomaOdomNode::switch_static_ref_service_callback, this);
   start_odom_srv_ = nh_.advertiseService("tud_momana/start_odom", &MomaOdomNode::start_odom_service_callback, this);
 
+
   odometry_pub_cam_ = nh_.advertise<nav_msgs::Odometry>("/cam/odom", 1, true);
   odometry_pub_marker_ = nh_.advertise<nav_msgs::Odometry>("/marker/odom", 1, true);
 
   odometry_at_switch_cam_pub_ = nh_.advertise<nav_msgs::Odometry>("/cam/odom_at_switch", 1, true);
   odometry_at_switch_marker_pub_ = nh_.advertise<nav_msgs::Odometry>("/marker/odom_at_switch", 1, true);
+
+  if(gt_available_){
+    odometry_pub_cam_gt_ = nh_.advertise<nav_msgs::Odometry>("/cam/odom_gt", 1, true);
+    odometry_pub_marker_gt_ = nh_.advertise<nav_msgs::Odometry>("/marker/odom_gt", 1, true);
+  }
 
   path_pub_cam_ = nh_.advertise<nav_msgs::Path>("/cam/path", 1, true);
   path_pub_marker_ = nh_.advertise<nav_msgs::Path>("/marker/path", 1, true);
@@ -61,38 +70,20 @@ void MomaOdomNode::init_odom(void){
   // set odom frame as current Camera position
   odom_to_cam_rel_.setIdentity();
 
-
-  //set current camera frame to same place as camera ground truth
-
-  ros::Time spin_begin = ros::Time::now();
-  ros::Time spin_end;
-
-
-  tf::StampedTransform world_to_cam_gt;
-  ros::Time now = ros::Time::now();
-  // We look for a transformation betwwen cam and marker
-  try {
-    tf_listener_.waitForTransform("world", "camera_link_gt", ros::Time(0),
-                                  ros::Duration(0.25));
-    tf_listener_.lookupTransform("world", "camera_link_gt", ros::Time(0),
-                                 world_to_cam_gt);
-  } catch (tf::TransformException& ex) {
-    ROS_ERROR("%s", ex.what());
-    // if we dont have a valid transformation return false
+  if(gt_available_){
+    //set current camera frame to same place as camera ground truth
+    tf::StampedTransform world_to_cam_gt = get_cam_gt();
+    world_to_cam_gt.child_frame_id_  =  odom_to_cam_rel_.child_frame_id_;
+    world_to_cam_gt.frame_id_  =  odom_to_cam_rel_.frame_id_;
+    odom_to_cam_rel_ = world_to_cam_gt;
   }
-  world_to_cam_gt.child_frame_id_  =  odom_to_cam_rel_.child_frame_id_;
-  world_to_cam_gt.frame_id_  =  odom_to_cam_rel_.frame_id_;
-  odom_to_cam_rel_ = world_to_cam_gt;
-
-
-
 
   //set_cam_static
   set_cam_static();
 
   odom_initialized_ = true;
   ROS_INFO("----------------------------------------------------------------------");
-  ROS_INFO("-------------Relative Odometry Initialized (Camera is Static)--------------");
+  ROS_INFO("-------------Relative Odometry Initialized (Camera is Static)---------");
   ROS_INFO("----------------------------------------------------------------------");
 
   moma_odom_spin();
@@ -137,15 +128,12 @@ tf::StampedTransform MomaOdomNode::get_cam_to_marker(void){
   ros::Time spin_end;
   tf::StampedTransform cam_to_marker;
   ros::Time now = ros::Time::now();
-  // We look for a transformation betwwen cam and marker
+  // We look for a transformation between cam and marker
   try {
     tf_listener_.waitForTransform(cam_frame_, marker_frame_, ros::Time(0),
                                   ros::Duration(0.25));
     tf_listener_.lookupTransform(cam_frame_, marker_frame_, ros::Time(0),
                                  cam_to_marker);
-    // ROS_DEBUG("tracking_node | Parent Frame: %s, Child frame: %s",
-    // base_to_target.frame_id_.c_str(),
-    // base_to_target.child_frame_id_.c_str());
   } catch (tf::TransformException& ex) {
     ROS_ERROR("%s", ex.what());
     // if we dont have a valid transformation return false
@@ -171,6 +159,36 @@ tf::StampedTransform MomaOdomNode::get_cam_to_marker(void){
   }else{
     return cam_to_marker;
   }
+}
+
+tf::StampedTransform MomaOdomNode::get_cam_gt(void){
+  tf::StampedTransform world_to_cam_gt;
+  // We look for a transformation between world and the ground truth camera
+  try {
+    tf_listener_.waitForTransform("world", "camera_link_gt", ros::Time(0),
+                                  ros::Duration(0.25));
+    tf_listener_.lookupTransform("world", "camera_link_gt", ros::Time(0),
+                                 world_to_cam_gt);
+  } catch (tf::TransformException& ex) {
+    ROS_ERROR("%s", ex.what());
+    // if we dont have a valid transformation return false
+  }
+  return world_to_cam_gt;
+}
+
+tf::StampedTransform MomaOdomNode::get_marker_gt(void){
+  tf::StampedTransform world_to_marker_gt;
+  // We look for a transformation between world and the ground truth camera
+  try {
+    tf_listener_.waitForTransform("world", "marker_link_gt", ros::Time(0),
+                                  ros::Duration(0.25));
+    tf_listener_.lookupTransform("world", "marker_link_gt", ros::Time(0),
+                                 world_to_marker_gt);
+  } catch (tf::TransformException& ex) {
+    ROS_ERROR("%s", ex.what());
+    // if we dont have a valid transformation return false
+  }
+  return world_to_marker_gt;
 }
 
 void MomaOdomNode::set_cam_static(void){
@@ -209,6 +227,12 @@ void MomaOdomNode::cam_static_calc(void){
 
   // we calculate cam to marker relative transform
   cam_to_marker_ = get_cam_to_marker(); //from marker PnP pose estimation using camera image
+
+  if(gt_available_){
+    world_to_cam_gt_ = get_cam_gt();
+    world_to_marker_gt_ = get_marker_gt();
+  }
+
   odom_to_marker_rel_.setData(odom_to_cam_rel_*cam_to_marker_);
   odom_to_marker_rel_.stamp_ = now;
 }
@@ -263,9 +287,16 @@ void MomaOdomNode::publish_odometry_at_switch(void){
 
 void MomaOdomNode::publish_odometry(void){
   geometry_msgs::Pose cam_pose, marker_pose;
+  geometry_msgs::Pose cam_pose_gt, marker_pose_gt;
 
   tf::poseTFToMsg(odom_to_cam_rel_, cam_pose);
   tf::poseTFToMsg(odom_to_marker_rel_, marker_pose);
+
+
+  if(gt_available_){
+    tf::poseTFToMsg(world_to_cam_gt_, cam_pose_gt);
+    tf::poseTFToMsg(world_to_marker_gt_, marker_pose_gt);
+  }
 
   ROS_DEBUG("Cam odom x: %f", cam_pose.position.x);
 
@@ -279,6 +310,36 @@ void MomaOdomNode::publish_odometry(void){
   marker_odometry_msg_.header.seq = seq_odometry_;
   marker_odometry_msg_.header.stamp = odom_to_marker_rel_.stamp_;
   marker_odometry_msg_.pose.pose = marker_pose;
+
+  // Construct gt odometry messages
+  if(gt_available_){
+    nav_msgs::Odometry cam_gt_odometry_msg, marker_gt_odometry_msg;
+
+    // Construct cam odometry message
+    // Odometry frames_id
+    cam_gt_odometry_msg.header.frame_id = "world";
+    cam_gt_odometry_msg.child_frame_id = "camera_link_gt";
+
+    cam_gt_odometry_msg.header.seq = seq_odometry_;
+    cam_gt_odometry_msg.header.stamp = world_to_cam_gt_.stamp_;
+    cam_gt_odometry_msg.pose.pose = cam_pose_gt;
+    // dont need to set up twist in the navigation message (yet..)
+
+    // Construct marker odometry message
+    // Odometry frames_id
+    marker_gt_odometry_msg.header.frame_id = "world";
+    marker_gt_odometry_msg.child_frame_id = "marker_link_gt";
+    marker_gt_odometry_msg.header.seq = seq_odometry_;
+    marker_gt_odometry_msg.header.stamp = world_to_marker_gt_.stamp_;
+    marker_gt_odometry_msg.pose.pose = marker_pose_gt;
+
+
+    odometry_pub_cam_gt_.publish(cam_gt_odometry_msg);
+    odometry_pub_marker_gt_.publish(marker_gt_odometry_msg);
+
+  }
+
+
   // dont need to set up twist in the navigation message (yet..)
 
   //Publisht the odometry messages
