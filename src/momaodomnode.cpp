@@ -61,6 +61,32 @@ void MomaOdomNode::init_odom(void){
   // set odom frame as current Camera position
   odom_to_cam_rel_.setIdentity();
 
+
+  //set current camera frame to same place as camera ground truth
+
+  ros::Time spin_begin = ros::Time::now();
+  ros::Time spin_end;
+
+
+  tf::StampedTransform world_to_cam_gt;
+  ros::Time now = ros::Time::now();
+  // We look for a transformation betwwen cam and marker
+  try {
+    tf_listener_.waitForTransform("world", "camera_link_gt", ros::Time(0),
+                                  ros::Duration(0.25));
+    tf_listener_.lookupTransform("world", "camera_link_gt", ros::Time(0),
+                                 world_to_cam_gt);
+  } catch (tf::TransformException& ex) {
+    ROS_ERROR("%s", ex.what());
+    // if we dont have a valid transformation return false
+  }
+  world_to_cam_gt.child_frame_id_  =  odom_to_cam_rel_.child_frame_id_;
+  world_to_cam_gt.frame_id_  =  odom_to_cam_rel_.frame_id_;
+  odom_to_cam_rel_ = world_to_cam_gt;
+
+
+
+
   //set_cam_static
   set_cam_static();
 
@@ -371,4 +397,3 @@ tf::StampedTransform MomaOdomNode::do_interpolation_tf_buffer(void){
 
   return tf_filtered;
 }
-

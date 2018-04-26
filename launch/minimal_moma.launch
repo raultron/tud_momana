@@ -10,11 +10,19 @@
 
   <include file="$(find ar_sys)/launch/single_board_blackfly.launch" />
 
+  <include file="$(find tud_momana)/launch/publish_calibrated_frames.launch" />
+
+  <node pkg="sound_play" name="soundplay_node" type="soundplay_node.py" output="screen"/>
+
   <node pkg="tud_momana" name="joy_control" type="joy_control" output="screen"/>
 
   <node pkg="tud_momana" name="moma_odom" type="moma_odom"  output="screen"/>
 
   <!-- static transforms needed for our relative odometry frames -->
+
+  <!-- world to map -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_tf" args="0 0 0 0 0 0 1 world map" />
+
   <!-- map to odom -->
   <node pkg="tf2_ros" type="static_transform_publisher" name="odom_tf" args="0 0 0 0 0 0 1 map odom" />
 

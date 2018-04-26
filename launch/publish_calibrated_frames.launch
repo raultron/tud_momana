@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<launch>
+  <!-- Launch Optitrack Tracking frames-->
+	<include file="$(find dynamic_marker)/launch/optitrack.launch" />
+
+  <arg name="camera_optitrack" value="/camera_optitrack"/>
+  <arg name="camera_link" value="/camera_link_gt"/>
+
+  <arg name="board_optitrack" value="/board_optitrack"/>
+  <arg name="board_link" value="/marker_link_gt"/>
+
+  <node name="optitrack_to_marker_gt" pkg="tf" type="static_transform_publisher"
+      args="-0.010090705158115628 -0.008845902221446988 -0.020388608991443673 -0.002608834391849368 -0.0018268247056019997 -0.0038599432994857173 0.9999874786877762 $(arg board_optitrack) $(arg board_link) 10" />
+
+  <node name="optitrack_to_cam_gt" pkg="tf" type="static_transform_publisher"
+      args="-0.00126104321961 -0.00682812213747 0.0870872807325 0.0275324668613 -0.00434507919533 -0.0018817197233 0.999609695174 $(arg camera_optitrack) $(arg camera_link) 10" />
+</launch>
