@@ -17,8 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
     actionlib_msgs
     actionlib
     tf
-    tud_coop_uv
-    robotino_local_move
 )
 
 find_package(Boost REQUIRED COMPONENTS thread)
@@ -130,82 +128,44 @@ include_directories(${catkin_INCLUDE_DIRS})
 # )
 
 
-set(MOMANA_SOURCE_FILES
-    src/momana.cpp
-    src/momananode.cpp
-)
-
-set(MOMANA_HEADER_FILES
-    include/tud_momana/momananode.hpp
-)
-
 set(MOMANAODOM_SOURCE_FILES
-    src/momanaodom.cpp
-    src/momanaodomnode.cpp
+    src/momaodom.cpp
+    src/momaodomnode.cpp
 )
 
 set(MOMANAODOM_HEADER_FILES
-    include/tud_momana/momanaodomnode.hpp
+    include/tud_momana/momaodomnode.hpp
 )
-
-#set(PIDCONTROL_SOURCE_FILES
-#    src/pid_control.cpp
-#    src/controlnode.cpp
-#    src/filtervelocity.cpp
-#)
-
-#set(PIDCONTROL_HEADER_FILES
-#    include/ardrone_velocity/controlnode.hpp
-#    include/ardrone_velocity/filtervelocity.hpp
-#)
 
 
 ## Declare a cpp executable
-add_executable(momana ${MOMANA_SOURCE_FILES} ${MOMANA_HEADER_FILES})
-add_executable(momana_odom ${MOMANAODOM_SOURCE_FILES} ${MOMANAODOM_HEADER_FILES})
-add_executable(joy_control_momana src/joy_control.cpp)
-add_executable(robotino_joy_control src/robotino_joy_control.cpp)
-#add_executable(pid_control ${PIDCONTROL_SOURCE_FILES} ${PIDCONTROL_HEADER_FILES})
-#add_executable(test_controller src/test_controller.cpp)
-#add_executable(mainQt src/mainQt.cpp)
+add_executable(moma_odom ${MOMANAODOM_SOURCE_FILES} ${MOMANAODOM_HEADER_FILES})
+add_executable(joy_control src/joy_control.cpp)
+#add_executable(robotino_joy_control src/robotino_joy_control.cpp)
+
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-##add_dependencies(coop_uv_node coop_uv_generate_messages_cpp)
-add_dependencies(momana
-  tud_coop_uv_generate_messages_cpp
-  tud_momana_generate_messages_cpp
-  robotino_local_move_generate_messages_cpp
-  ${robotino_local_move_EXPORTED_TARGETS})
 
 add_dependencies(
-  momana_odom
+  moma_odom
   tud_momana_generate_messages_cpp)
 
-add_dependencies(
-  joy_control_momana
-  tud_coop_uv_generate_messages_cpp
-  tud_momana_generate_messages_cpp
-  )
+#add_dependencies(
+#  joy_control_momana
+#  tud_coop_uv_generate_messages_cpp
+#  tud_momana_generate_messages_cpp
+#  )
 
-add_dependencies(
-  robotino_joy_control
-  tud_momana_generate_messages_cpp)
-#add_dependencies(pid_control ardrone_autonomy)
-#add_dependencies(test_controller ardrone_autonomy)
+#add_dependencies(
+#  robotino_joy_control
+#  tud_momana_generate_messages_cpp)
 
-#add_dependencies(pid_control ${PROJECT_NAME}_gencfg)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(momana ${catkin_LIBRARIES})
-target_link_libraries(momana_odom ${catkin_LIBRARIES})
-target_link_libraries(joy_control_momana ${catkin_LIBRARIES})
-target_link_libraries(robotino_joy_control ${catkin_LIBRARIES})
-#target_link_libraries(pid_control ${catkin_LIBRARIES})
-#target_link_libraries(test_controller ${catkin_LIBRARIES})
-
-
-#target_link_libraries(mainQt ${catkin_LIBRARIES} ${QT_LIBRARIES})
+target_link_libraries(moma_odom ${catkin_LIBRARIES})
+target_link_libraries(joy_control ${catkin_LIBRARIES})
+#target_link_libraries(robotino_joy_control ${catkin_LIBRARIES})
 
 #############
 ## Install ##
@@ -258,7 +218,7 @@ target_link_libraries(robotino_joy_control ${catkin_LIBRARIES})
 ##################
 # FOR QT CREATOR
 ##################
-file(GLOB_RECURSE QT_MOC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS include/tud_momana/*.hpp)
-FILE(GLOB_RECURSE INC_ALL "include/tud_momana/*.hpp")
-FILE(GLOB_RECURSE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*.cpp)
+#file(GLOB_RECURSE QT_MOC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS include/tud_momana/*.hpp)
+#FILE(GLOB_RECURSE INC_ALL "include/tud_momana/*.hpp")
+#FILE(GLOB_RECURSE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*.cpp)
 
