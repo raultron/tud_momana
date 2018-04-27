@@ -65,7 +65,7 @@ public:
     void set_marker_static(void);
     void set_cam_static(void);
     void moma_odom_spin(void);
-    void wait_for_transforms(void);    
+    void wait_for_transforms(void);
     tf::StampedTransform do_interpolation_tf_buffer(void);
     tf::StampedTransform get_cam_to_marker(void);
 
@@ -92,7 +92,9 @@ private:
 
     //Navigation path publishers
     ros::Publisher path_pub_cam_;
+    ros::Publisher path_pub_cam_gt_;
     ros::Publisher path_pub_marker_;
+    ros::Publisher path_pub_marker_gt_;
 
     tf::TransformBroadcaster tf_broadcaster_;
     tf::TransformListener tf_listener_;
@@ -111,6 +113,7 @@ private:
     nav_msgs::Odometry cam_odometry_msg_, marker_odometry_msg_;
 
     nav_msgs::Path cam_path_msg_, marker_path_msg_;
+    nav_msgs::Path cam_gt_path_msg_, marker_gt_path_msg_;
 
     int camera_framerate_;
     int seq_odometry_;
@@ -133,4 +136,3 @@ private:
 };
 
 #endif // MOMAODOMNODE_HPP
-

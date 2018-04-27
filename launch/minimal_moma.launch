@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
   <arg name="joy_dev" default="/dev/input/js0" />
-  <arg name="rviz_config_path" default="$(find tud_momana)/data/rviz_config.rviz" />
+  <arg name="rviz_config_path" default="$(find tud_momana)/cfg/rviz.rviz" />
 
   <node pkg="joy" type="joy_node" name="joy_node">
     <param name="dev" value="$(arg joy_dev)" />
@@ -18,7 +18,7 @@
   <node pkg="tud_momana" name="joy_control" type="joy_control" output="screen"/>
 
   <node pkg="tud_momana" name="moma_odom" type="moma_odom"  output="screen">
-    <param name="publish_gt" value="true"/>
+    <param name="gt_available"  type="bool" value="true"/>
   </node>
 
   <!-- static transforms needed for our relative odometry frames -->

@@ -7,7 +7,7 @@ MomaOdomNode::MomaOdomNode():
   filter_enabled_(false)
 {
   odom_initialized_ = false;
-  nh_.param<bool>("publish_gt", gt_available_, false);
+  nh_.param<bool>("gt_available", gt_available_, true);
 
 
   filter_enable_srv_ = nh_.advertiseService("tud_momana/filter_enable", &MomaOdomNode::filter_enable_service_callback, this);
@@ -27,6 +27,8 @@ MomaOdomNode::MomaOdomNode():
   if(gt_available_){
     odometry_pub_cam_gt_ = nh_.advertise<nav_msgs::Odometry>("/cam/odom_gt", 1, true);
     odometry_pub_marker_gt_ = nh_.advertise<nav_msgs::Odometry>("/marker/odom_gt", 1, true);
+    path_pub_cam_gt_ = nh_.advertise<nav_msgs::Path>("/cam/path_gt", 1, true);
+    path_pub_marker_gt_ = nh_.advertise<nav_msgs::Path>("/marker/path_gt", 1, true);
   }
 
   path_pub_cam_ = nh_.advertise<nav_msgs::Path>("/cam/path", 1, true);
@@ -57,6 +59,8 @@ MomaOdomNode::MomaOdomNode():
   // Nav path frames_id
   cam_path_msg_.header.frame_id = "rel_cam/odom";
   marker_path_msg_.header.frame_id = "rel_marker/odom";
+  cam_gt_path_msg_.header.frame_id = "world";
+  marker_gt_path_msg_.header.frame_id = "world";
 }
 
 
@@ -67,6 +71,12 @@ void MomaOdomNode::init_odom(void){
   wait_for_transforms();
 
   seq_odometry_ = 0;
+
+
+  cam_path_msg_.poses.clear();
+  marker_path_msg_.poses.clear();
+  cam_gt_path_msg_.poses.clear();
+  marker_gt_path_msg_.poses.clear();
   // set odom frame as current Camera position
   odom_to_cam_rel_.setIdentity();
 
@@ -247,6 +257,12 @@ void MomaOdomNode::marker_static_calc(void){
   // we calculate cam relative transform
   cam_to_marker_ = get_cam_to_marker(); //from marker PnP pose estimation using camera image
   tf::Transform marker_to_cam = cam_to_marker_.inverse();
+
+  if(gt_available_){
+    world_to_cam_gt_ = get_cam_gt();
+    world_to_marker_gt_ = get_marker_gt();
+  }
+
   odom_to_cam_rel_.setData(odom_to_marker_rel_*marker_to_cam);
   odom_to_cam_rel_.stamp_ = now;
 }
@@ -311,34 +327,6 @@ void MomaOdomNode::publish_odometry(void){
   marker_odometry_msg_.header.stamp = odom_to_marker_rel_.stamp_;
   marker_odometry_msg_.pose.pose = marker_pose;
 
-  // Construct gt odometry messages
-  if(gt_available_){
-    nav_msgs::Odometry cam_gt_odometry_msg, marker_gt_odometry_msg;
-
-    // Construct cam odometry message
-    // Odometry frames_id
-    cam_gt_odometry_msg.header.frame_id = "world";
-    cam_gt_odometry_msg.child_frame_id = "camera_link_gt";
-
-    cam_gt_odometry_msg.header.seq = seq_odometry_;
-    cam_gt_odometry_msg.header.stamp = world_to_cam_gt_.stamp_;
-    cam_gt_odometry_msg.pose.pose = cam_pose_gt;
-    // dont need to set up twist in the navigation message (yet..)
-
-    // Construct marker odometry message
-    // Odometry frames_id
-    marker_gt_odometry_msg.header.frame_id = "world";
-    marker_gt_odometry_msg.child_frame_id = "marker_link_gt";
-    marker_gt_odometry_msg.header.seq = seq_odometry_;
-    marker_gt_odometry_msg.header.stamp = world_to_marker_gt_.stamp_;
-    marker_gt_odometry_msg.pose.pose = marker_pose_gt;
-
-
-    odometry_pub_cam_gt_.publish(cam_gt_odometry_msg);
-    odometry_pub_marker_gt_.publish(marker_gt_odometry_msg);
-
-  }
-
 
   // dont need to set up twist in the navigation message (yet..)
 
@@ -364,6 +352,51 @@ void MomaOdomNode::publish_odometry(void){
 
   path_pub_cam_.publish(cam_path_msg_);
   path_pub_marker_.publish(marker_path_msg_);
+
+  if(gt_available_){
+    // Construct gt odometry messages
+    nav_msgs::Odometry cam_gt_odometry_msg, marker_gt_odometry_msg;
+
+    // Construct cam odometry message
+    // Odometry frames_id
+    cam_gt_odometry_msg.header.frame_id = "world";
+    cam_gt_odometry_msg.child_frame_id = "camera_link_gt";
+
+    cam_gt_odometry_msg.header.seq = seq_odometry_;
+    cam_gt_odometry_msg.header.stamp = world_to_cam_gt_.stamp_;
+    cam_gt_odometry_msg.pose.pose = cam_pose_gt;
+    // dont need to set up twist in the navigation message (yet..)
+
+    // Construct marker odometry message
+    // Odometry frames_id
+    marker_gt_odometry_msg.header.frame_id = "world";
+    marker_gt_odometry_msg.child_frame_id = "marker_link_gt";
+    marker_gt_odometry_msg.header.seq = seq_odometry_;
+    marker_gt_odometry_msg.header.stamp = world_to_marker_gt_.stamp_;
+    marker_gt_odometry_msg.pose.pose = marker_pose_gt;
+
+
+    odometry_pub_cam_gt_.publish(cam_gt_odometry_msg);
+    odometry_pub_marker_gt_.publish(marker_gt_odometry_msg);
+
+    // Construct and publish nav path messages
+    geometry_msgs::PoseStamped marker_pose_stamped, cam_pose_stamped;
+    marker_pose_stamped.header.frame_id = marker_gt_odometry_msg.header.frame_id;
+    marker_pose_stamped.header.stamp = marker_gt_odometry_msg.header.stamp;
+    marker_pose_stamped.header.seq = marker_gt_odometry_msg.header.seq;
+    marker_pose_stamped.pose = marker_pose_gt;
+
+    cam_pose_stamped.header.frame_id = cam_gt_odometry_msg.header.frame_id;
+    cam_pose_stamped.header.stamp = cam_gt_odometry_msg.header.stamp;
+    cam_pose_stamped.header.seq = cam_gt_odometry_msg.header.seq;
+    cam_pose_stamped.pose = cam_pose_gt;
+
+    cam_gt_path_msg_.poses.push_back(cam_pose_stamped);
+    marker_gt_path_msg_.poses.push_back(marker_pose_stamped);
+
+    path_pub_cam_gt_.publish(cam_gt_path_msg_);
+    path_pub_marker_gt_.publish(marker_gt_path_msg_);
+  }
 }
 
 
