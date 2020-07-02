@@ -1,2 +1,2 @@
 # tud_momana
-monana (Mobile Marker based Navigation)
+momana (Mobile Marker based Navigation)
